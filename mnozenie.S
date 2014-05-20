@@ -68,7 +68,9 @@ petla_mnozenie:
 	movl	%edx, (%edi, %ebp, 4)
 	popl	%edi
 	cmpl	$0, %ecx
-	jnz	petla_mnozenie	
+	jnz	petla_mnozenie
+	
+	popl	%ebp	
 
 	#trzeba sprawdzic ukryta jedynke
 	xorl	%eax, %eax
@@ -95,12 +97,15 @@ zwiekszenie_mantysy:
 	movl	%ebx, (%edi)
 	movl	%eax, 4(%edi)
 	xorl	%eax, %eax
-	jmp	koniec
+	#jmp	koniec
 
 koniec:
 	#przy koncu trzeba zwrocic znowu taki sam rozmiar jak na poczatku (nastepuje obciecie)
-	pushl	wynik_size
+	movl	wynik_size, %eax
+	imull	$4, %eax
+	pushl	%eax
 	call	malloc
+	addl	$4, %esp
 	movl	%eax, pamiec_pomoc
 
 	#przepisanie tablicy
