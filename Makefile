@@ -1,6 +1,6 @@
 # Makefile na potrzeby projektu
 CC=gcc
-CFLAGS=-m32 -lc -O0
+CFLAGS=-m32 -lc -O0 -g
 OBJS=emulacja.o
 
 all: emulacja
