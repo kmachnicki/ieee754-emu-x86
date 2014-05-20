@@ -1,6 +1,8 @@
 # Modul mnozy 2 liczby zmiennoprzecinkowe
 
 MASKA_CF = 0b10000000
+BIAS_H = 0x7FFFFDFF
+BIAS_L = 0xFFFFFFFF
 
 .data
 czy_pierwszy_obieg:	.byte	0
@@ -26,6 +28,31 @@ po_zamianie_znakow:
 	#movl	$0, %edx
 	movl	$liczba1_exp, %esi
 	movl	$liczba2_exp, %edi
+
+	movl	4(%esi), %eax		#mlodsza czesc
+	subl	$BIAS_L, %eax
+	movl	%eax, %ebx
+	movl	(%esi), %eax
+	sbbl	$BIAS_H, %eax
+	movl	%eax, %ecx			#pierwsza liczba ecx:ebx
+
+	movl	4(%edi), %eax
+	subl	$BIAS_L, %eax
+	movl	(%edi), %edx
+	sbbl	$BIAS_H, %edx		#druga liczba edx:eax
+
+	#trzeba dodaj wykladniki
+	addl	%ebx, %eax
+	adcl	%ecx, %edx			#wynik w edx:eax
+
+	#trzeba dodac BIAS
+	addl	$BIAS_L, %eax
+	adcl	$BIAS_H, %edx
+
+	#wpisanie wartosci do pamieci
+	movl	$wynik_exp, %edi	
+	movl	%eax, 4(%edi)
+	movl	%edx, (%edi)		
 
 	#movl	(%esi, %edx, 4), %eax
 	#movl	(%edi, %edx, 4), %ebx
