@@ -6,16 +6,29 @@ SYSCALL = 0x80
 
 .data
 
+.globl	liczba1_sign
+.globl	liczba1_exp
+.globl	liczba1_mts
+.globl	liczba1_size
+
 liczba1_sign:	.byte	0
 liczba1_exp:	.quad	0
 liczba1_mts:	.long	0	#to przechowuje adres to tablicy gdzie znajudje sie mantyssa
 liczba1_size:	.long	0	#rozmiar tablicy (musi byc wyrownany do 4 bajtow)
 
+.globl	liczba2_sign
+.globl	liczba2_exp
+.globl	liczba2_mts
+.globl	liczba2_size
 liczba2_sign:	.byte	0
 liczba2_exp:	.quad	0
 liczba2_mts:	.long	0	#to przechowuje adres to tablicy gdzie znajudje sie mantyssa
 liczba2_size:	.long	0	#rozmiar tablicy (musi byc wyrownany do 4 bajtow)
 
+.globl	wynik_sign
+.globl	wynik_exp
+.globl	wynik_mts
+.globl	wynik_size
 wynik_sign:	.byte	0
 wynik_exp:	.quad	0
 wynik_mts:	.long	0	#to przechowuje adres to tablicy gdzie znajudje sie mantyssa
@@ -101,9 +114,12 @@ koniec_liczba2:
 	call	free
 	addl	$4, %esp
 
-	movl	$0, %ebx
-	movl	$EXIT, %eax
-	int	$SYSCALL
+	#movl	$0, %ebx
+	#movl	$EXIT, %eax
+	#int	$SYSCALL
+
+	pushl	$0
+	call	exit			#much portable wow
 
 # Cos juz jest
 
