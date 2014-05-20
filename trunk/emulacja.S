@@ -36,6 +36,10 @@ wynik_size:	.long	0	#rozmiar tablicy (musi byc wyrownany do 4 bajtow)
 
 .include "przyklad.inc"
 
+menu:	.ascii	"Wybierz operacje z menu: \n1. Dodawanie\n2. Odejmowanie\n\0"
+wybor:	.long	0
+wybor_fmt:	.ascii	"%d\0"
+
 # Zaczynamy kod
 .text
 .globl	main	#bedzie kompilowane pod gcc dla wygody
@@ -108,8 +112,31 @@ koniec_liczba2:
 	#druga liczba juz w pamieci
 
 	#uwaga dodawanie
-	call	dodaj
+	#call	dodaj
 
+	#menu
+	pushl	$menu
+	call	printf
+	addl	$4, %esp
+
+	pushl	$wybor
+	pushl	$wybor_fmt
+	call	scanf
+	addl	$4 * 2, %esp
+
+	cmpl	$1, wybor
+	jz wybor_dodawanie
+	cmpl	$2, wybor
+	jnz po_operacjach
+
+wybor_odejmowanie:
+	call	odejmij
+	jmp	po_operacjach
+
+wybor_dodawanie:
+	call	dodaj	
+
+po_operacjach:
 	#zwalnianie pamieci
 	pushl	liczba1_mts
 	call	free

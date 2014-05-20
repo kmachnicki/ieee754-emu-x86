@@ -4,7 +4,7 @@ mantyssa1: .long 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0
 
 mantyssa2: .long 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000006
 
-SIGN1: .byte 0
+SIGN1: .byte 1						#zmienilem na 1 zeby mozna bylo testowac odejmowanie
 EXP1: .quad 0x7FFFFFFFFFFFFFF7
 ROZM1: .long 8
 
