@@ -58,7 +58,7 @@ druga:							#druga liczba jest wieksza
 
 	movb	$1, czy_pierwszy_obieg	#zeby ujawnic jedynke
 
-	movl	$liczba2_mts, %edi
+	movl	liczba2_mts, %edi
 przesuwanie:
 	decl	%eax
 	xorl	%ebx, %ebx
@@ -95,7 +95,7 @@ pierwsza:						#piersza liczba jest wieksza badz rowna
 	
 	movb	$1, czy_pierwszy_obieg	#zeby ujawnic jedynke
 
-	movl	$liczba1_mts, %edi
+	movl	liczba1_mts, %edi
 przesuwanie_1:
 	decl	%eax
 	xorl	%ebx, %ebx
@@ -131,14 +131,14 @@ sprowadzone:
 	movl	%eax, wynik_mts
 
 	#liczby sprowadzone do jednego wspolnej potegi (teraz dodawanie)
-	movl	$liczba1_mts, %esi
-	movl	$liczba2_mts, %edi
+	movl	liczba1_mts, %esi
+	movl	liczba2_mts, %edi
 
 	movl	liczba1_size, %edx
-	decl	%edx
 
 	clc
 dodanie_mantysy:
+	decl	%edx
 	movl	(%esi, %edx, 4), %eax
 	movl	(%edi, %edx, 4), %ebx
 	adcl	%eax, %ebx
