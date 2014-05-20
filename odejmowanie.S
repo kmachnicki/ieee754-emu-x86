@@ -1,4 +1,4 @@
-# Modul dodajacy 2 liczby zmiennoprzecinkowe
+# Modul odejmujacy 2 liczby zmiennoprzecinkowe
 
 MASKA_CF = 0b10000000
 
@@ -6,17 +6,15 @@ MASKA_CF = 0b10000000
 czy_pierwszy_obieg:	.byte	0
 
 .text
-.globl	dodaj
-.type	dodaj, @function
-dodaj:
+.globl	odejmij
+.type	odejmij, @function
+odejmij:
 	pushl	%ebp
 	movl	%esp, %ebp
 	movb	liczba1_sign, %al
 	movb	liczba2_sign, %ah
-	cmpb	%al, %ah			#jak rozne znaki to odejmowanie
-	jnz	zle_znaki
-
-	movb	%al, wynik_sign
+	cmpb	%al, %ah			#jak te same znaki to dodawanie
+	jz	zle_znaki
 
 	#movl	$0, %edx
 	movl	$liczba1_exp, %esi
@@ -41,6 +39,9 @@ dodaj:
 	jb	druga
 	
 druga:							#druga liczba jest wieksza
+	movl	liczba2_sign, %eax
+	movl	%eax, wynik_sign	#od razu przepisujemy znak od wiekszej	
+
 	movl	4(%esi), %eax
 
 	pushl	%edi
@@ -85,6 +86,9 @@ shift_mts2:
 	jmp	przesuwanie
 
 pierwsza:						#piersza liczba jest wieksza badz rowna
+	movl	liczba1_sign, %eax
+	movl	%eax, wynik_sign	#od razu przepisujemy znak od wiekszej	
+	
 	movl	4(%edi), %eax
 	movl	4(%esi), %ebx
 	subl	%ebx, %eax
@@ -130,33 +134,33 @@ sprowadzone:
 	addl	$4, %esp
 	movl	%eax, wynik_mts
 
-	#liczby sprowadzone do jednego wspolnej potegi (teraz dodawanie)
+	#liczby sprowadzone do jednego wspolnej potegi (teraz odejmowanie)
 	movl	liczba1_mts, %esi
 	movl	liczba2_mts, %edi
 
 	movl	liczba1_size, %edx
 
 	clc
-dodanie_mantysy:
+odjecie_mantysy:
 	decl	%edx
 	movl	(%esi, %edx, 4), %eax
 	movl	(%edi, %edx, 4), %ebx
-	adcl	%eax, %ebx
+	sbbl	%eax, %ebx
 	pushl	%edi
 	movl	wynik_mts, %edi
 	movl	%ebx, (%edi, %edx, 4)
 	popl	%edi
 
 	cmpl	$0, %edx				#czy juz wsio dodane
-	jnz	dodanie_mantysy
+	jnz	odjecie_mantysy
 
-	#trzeba sprawdzic ukryta jedynke
+	#trzeba sprawdzic ukryta jedynke (czy wystapilo przeniesienie)
 	xorl	%eax, %eax
 	shrb	$1, %al					#przesun CF tutaj
 	test	$MASKA_CF, %al
 	jz	koniec
 	
-	#trzeba dodac te jednyke
+	#trzeba dodac te jednyke i zmniejszyc mantyse
 	movl	wynik_mts, %edi
 	xorl	%ebx, %ebx
 	stc	
@@ -165,20 +169,20 @@ shift_wynik:
 	incl	%ebx
 	cmpl	wynik_size ,%ebx
 	jnz	shift_wynik					#po kolei kazdy przsuwa po jednym (wykonuje jeden pelny shift)
-		
-zwiekszenie_mantysy:
+
+zmniejszenie_mantysy:
 	movl	$wynik_exp, %edi
 	movl	4(%edi), %eax
 	movl	(%edi), %ebx
-	addl	$1, %eax
-	adcl	$0, %ebx
+	subl	$1, %eax
+	sbbl	$0, %ebx
 	movl	%ebx, (%edi)
 	movl	%eax, 4(%edi)
 	xorl	%eax, %eax
 	jmp	koniec
 zle_znaki:
 	#movl	$-1, %eax			#kod bledu -1
-	call	odejmij
+	call	dodaj
 
 koniec:
 	leave
