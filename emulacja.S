@@ -36,7 +36,7 @@ wynik_size:	.long	0	#rozmiar tablicy (musi byc wyrownany do 4 bajtow)
 
 .include "przyklad.inc"
 
-menu:	.ascii	"Wybierz operacje z menu: \n1. Dodawanie\n2. Odejmowanie\n\0"
+menu:	.ascii	"Wybierz operacje z menu: \n1. Dodawanie\n2. Odejmowanie\n3. Mnozenie\n\0"
 wybor:	.long	0
 wybor_fmt:	.ascii	"%d\0"
 
@@ -111,9 +111,6 @@ przepisanie_mant_2:
 koniec_liczba2:
 	#druga liczba juz w pamieci
 
-	#uwaga dodawanie
-	#call	dodaj
-
 	#menu
 	pushl	$menu
 	call	printf
@@ -127,7 +124,13 @@ koniec_liczba2:
 	cmpl	$1, wybor
 	jz wybor_dodawanie
 	cmpl	$2, wybor
-	jnz po_operacjach
+	jz wybor_odejmowanie
+	cmpl	$3, wybor
+	jnz	po_operacjach
+
+wybor_mnozenie:
+	call	mnoz
+	jmp	po_operacjach
 
 wybor_odejmowanie:
 	call	odejmij
