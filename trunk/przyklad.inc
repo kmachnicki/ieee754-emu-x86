@@ -6,9 +6,11 @@ mantyssa2: .long 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0
 
 SIGN1: .byte 0
 EXP1: .quad 0xFFFFFFFFFFFFFFF8
+ROZM1: .long 8
 
 SIGN2: .byte 0
 EXP2: .quad 0x0000000000000002
+ROZM2: .long 8
 
 # Liczba 1: 50 ^ -8
 # Liczba 2: 6  ^  2

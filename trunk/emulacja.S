@@ -37,8 +37,11 @@ main:
 	movl	$1, %edi
 	movl	EXP1(, %edi, 4), %eax
 	movl	%eax, liczba1_exp(, %edi, 4)
-	movl	$8, liczba1_size
-	pushl	liczba1_size
+    movl    ROZM1, %eax
+	movl	%eax, liczba1_size
+    movl    $4, %ebx
+    mul     %ebx
+	pushl	%eax
 	call	malloc
 	addl	$4, %esp
 	movl	%eax, liczba1_mts
@@ -66,8 +69,11 @@ koniec_liczba1:
 	movl	$1, %edi
 	movl	EXP2(, %edi, 4), %eax
 	movl	%eax, liczba2_exp(, %edi, 4)
-	movl	$8, liczba2_size
-	pushl	liczba2_size
+    movl    ROZM2, %eax
+    movl    %eax, liczba2_size
+    movl    $4, %ebx
+    mull    %ebx
+	pushl	%eax
 	call	malloc
 	addl	$4, %esp
 	movl	%eax, liczba2_mts
@@ -87,13 +93,13 @@ koniec_liczba2:
 	#druga liczba juz w pamieci
 
 
-	#pushl	liczba1_mts
-	#call	free
-	#addl	$4, %esp
+	pushl	liczba1_mts
+	call	free
+	addl	$4, %esp
 
-	#pushl	liczba2_mts
-	#call	free
-	#addl	$4, %esp
+	pushl	liczba2_mts
+	call	free
+	addl	$4, %esp
 
 	movl	$0, %ebx
 	movl	$EXIT, %eax
