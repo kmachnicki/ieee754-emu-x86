@@ -1,5 +1,10 @@
 # Modul dodajacy 2 liczby zmiennoprzecinkowe
 
+MASKA_CF = 0b10000000
+
+.data
+czy_pierwszy_obieg:	.byte	0
+
 .text
 .globl	dodaj
 .type	dodaj, @function
@@ -13,24 +18,154 @@ dodaj:
 
 	movb	%al, wynik_sign
 
-	movl	$0, %edx
+	#movl	$0, %edx
 	movl	$liczba1_exp, %esi
 	movl	$liczba2_exp, %edi
 
+	#movl	(%esi, %edx, 4), %eax
+	#movl	(%edi, %edx, 4), %ebx
+	#subl	%eax, %ebx			#rozniaca wykladnikow
+
+	#incl	%edx
+	#movl	(%esi, %edx, 4), %eax
+	#movl	(%edi, %edx, 4), %edx
+	#subl	%eax, %edx			#roznica mlodszych(starszych) czesci
+
+	movl	(%edi), %eax
+	movl	4(%edi), %edx
+	cmpl	4(%esi), %edx
+	jl	druga
+	cmpl	4(%esi), %edx
+	jg	pierwsza
+	cmpl	(%esi), %eax
+	jb	druga
+	
+druga:							#druga liczba jest wieksza
+	movl	4(%esi), %eax
+
+	pushl	%edi
+	movl	$wynik_exp, %edi
+	movl	%eax, 4(%edi)		#przepisanie wiekszej exponenty
+	popl	%edi
+	
+	movl	4(%edi), %ebx
+	subl	%ebx, %eax
+
+	movl	(%esi), %ecx
+	movl	%ecx, wynik_exp		#druga czesc przepisania
+	movl	(%edi), %edx
+	sbbl	%edx, %ecx			# ecx:eax roznica
+
+	movb	$1, czy_pierwszy_obieg	#zeby ujawnic jedynke
+
+	movl	$liczba2_mts, %edi
+przesuwanie:
+	decl	%eax
+	xorl	%ebx, %ebx
+	clc							#usun CF zeby nie przenioslo z konca przniesienia na poczatek
+	cmpb	$1, czy_pierwszy_obieg
+	jnz	shift_mts2				#jezeli to kolejne przjscie to nie ustawiaj CF
+	stc							#zostanie przeniesiony w shr bit z CF czyli utajniona jedynka z 1.00f -> 0.10f
+shift_mts2:
+	shrl	$1, (%edi, %ebx, 4)
+	incl	%ebx
+	cmpl	liczba2_size ,%ebx
+	jnz	shift_mts2				#po kolei kazdy przsuwa po jednym (wykonuje jeden pelny shift)
+	movb	$0, czy_pierwszy_obieg
+
+	cmpl	$0, %eax			#czy jednosci rowne 0
+	jnz	przesuwanie
+
+	cmpl	$0, %ecx			#czy juz wszystko przesuniete
+	jz	sprowadzone
+	
+	decl	%ecx
+	movl	$0xFFFFFF, %eax		#jak przekroczony to zabieramy z wyzszego
+
+	jmp	przesuwanie
+
+pierwsza:						#piersza liczba jest wieksza badz rowna
+	movl	4(%edi), %eax
+	movl	4(%esi), %ebx
+	subl	%ebx, %eax
+
+	movl	(%edi), %ecx
+	movl	(%esi), %edx
+	sbbl	%edx, %ecx			# ecx:eax roznica
+	
+	movb	$1, czy_pierwszy_obieg	#zeby ujawnic jedynke
+
+	movl	$liczba1_mts, %edi
+przesuwanie_1:
+	decl	%eax
+	xorl	%ebx, %ebx
+	clc
+	cmpb	$1, czy_pierwszy_obieg
+	jnz	shift_mts2				#jezeli to kolejne przjscie to nie ustawiaj CF
+	stc							#zostanie przeniesiony w shr bit z CF czyli utajniona jedynka z 1.00f -> 0.10f
+shift_mts1:
+	shrl	$1, (%edi, %ebx, 4)
+	incl	%ebx
+	cmpl	liczba1_size ,%ebx
+	jnz	shift_mts1				#po kolei kazdy przsuwa po jednym (wykonuje jeden pelny shift)
+	movb	$0, czy_pierwszy_obieg
+
+	cmpl	$0, %eax			#czy jednosci rowne 0
+	jnz	przesuwanie_1
+
+	cmpl	$0, %ecx			#czy juz wszystko przesuniete
+	jz	sprowadzone
+	
+	decl	%ecx
+	movl	$0xFFFFFF, %eax		#jak przekroczony to zabieramy z wyzszego
+
+	jmp	przesuwanie_1
+sprowadzone:
+	#trzeba zaalokowac pamiec na wynik
+	movl	liczba1_size, %eax
+	movl	%eax, wynik_size
+	imull	$4, %eax
+	pushl	%eax
+	call	malloc
+	addl	$4, %esp
+	movl	%eax, wynik_mts
+
+	#liczby sprowadzone do jednego wspolnej potegi (teraz dodawanie)
+	movl	$liczba1_mts, %esi
+	movl	$liczba2_mts, %edi
+
+	movl	liczba1_size, %edx
+	decl	%edx
+
+	clc
+dodanie_mantysy:
 	movl	(%esi, %edx, 4), %eax
 	movl	(%edi, %edx, 4), %ebx
-	subl	%eax, %ebx			#rozniaca wykladnikow
-	jz	sprowadzone
-	jng	pierwsza
+	adcl	%eax, %ebx
+	pushl	%edi
+	movl	wynik_mts, %edi
+	movl	%ebx, (%edi, %edx, 4)
+	popl	%edi
 
-druga:
+	cmpl	$0, %edx				#czy juz wsio dodane
+	jnz	dodanie_mantysy
+
+	#trzeba sprawdzic ukryta jedynke
+	xorl	%eax, %eax
+	shrb	$1, %al					#przesun CF tutaj
+	test	$MASKA_CF, %al
+	jz	koniec
 	
-	jmp	sprowadzone
-
-pierwsza:
-
-sprowadzone:
-	
+	#trzeba dodac te jednyke
+	movl	wynik_mts, %edi
+	xorl	%ebx, %ebx
+	stc	
+shift_wynik:
+	shrl	$1, (%edi, %ebx, 4)
+	incl	%ebx
+	cmpl	wynik_size ,%ebx
+	jnz	shift_wynik					#po kolei kazdy przsuwa po jednym (wykonuje jeden pelny shift)
+		
 zle_znaki:
 	movl	$-1, %eax			#kod bledu -1
 
