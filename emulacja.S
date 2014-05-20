@@ -44,16 +44,17 @@ main:
 	#dane z przykladu laduja tutaj (liczba 1)
 	movb	SIGN1, %al
 	movb	%al, liczba1_sign
-	movl	EXP1, %eax
-	movl	%eax, liczba1_exp
-	#sarl	$32, liczba1_exp
 	movl	$1, %edi
+	movl	EXP1, %eax
+	movl	%eax, liczba1_exp( ,%edi, 4)
+	#sarl	$32, liczba1_exp
+	#movl	$1, %edi
 	movl	EXP1(, %edi, 4), %eax
-	movl	%eax, liczba1_exp(, %edi, 4)
-    movl    ROZM1, %eax
+	movl	%eax, liczba1_exp
+	movl    ROZM1, %eax
 	movl	%eax, liczba1_size
-    movl    $4, %ebx
-    mul     %ebx
+	movl    $4, %ebx
+	mul     %ebx
 	pushl	%eax
 	call	malloc
 	addl	$4, %esp
@@ -76,16 +77,17 @@ koniec_liczba1:
 	#dane z przykladu laduja tutaj (liczba 2)
 	movb	SIGN2, %al
 	movb	%al, liczba2_sign
-	movl	EXP2, %eax
-	movl	%eax, liczba2_exp
-	#sarl	$32, liczba2_exp
 	movl	$1, %edi
+	movl	EXP2, %eax
+	movl	%eax, liczba2_exp( ,%edi, 4)
+	#sarl	$32, liczba2_exp
+	#movl	$1, %edi
 	movl	EXP2(, %edi, 4), %eax
-	movl	%eax, liczba2_exp(, %edi, 4)
-    movl    ROZM2, %eax
-    movl    %eax, liczba2_size
-    movl    $4, %ebx
-    mull    %ebx
+	movl	%eax, liczba2_exp
+	movl    ROZM2, %eax
+	movl    %eax, liczba2_size
+	movl    $4, %ebx
+	mull    %ebx
 	pushl	%eax
 	call	malloc
 	addl	$4, %esp
@@ -105,7 +107,10 @@ przepisanie_mant_2:
 koniec_liczba2:
 	#druga liczba juz w pamieci
 
+	#uwaga dodawanie
+	call	dodaj
 
+	#zwalnianie pamieci
 	pushl	liczba1_mts
 	call	free
 	addl	$4, %esp
@@ -114,10 +119,14 @@ koniec_liczba2:
 	call	free
 	addl	$4, %esp
 
-	#movl	$0, %ebx
-	#movl	$EXIT, %eax
-	#int	$SYSCALL
+	cmpl	$0, wynik_mts
+	jz	koniec
+	#jak zaalokowano to zwolnij pamiec tez tutaj
+	pushl	wynik_mts
+	call	free
+	addl	$4, %esp
 
+koniec:
 	pushl	$0
 	call	exit			#much portable wow
 
