@@ -4,6 +4,7 @@ MASKA_CF = 0b10000000
 
 .data
 czy_pierwszy_obieg:	.byte	0
+jakie_zaokraglenie:	.long	0
 
 .text
 .globl	dodaj
@@ -11,6 +12,7 @@ czy_pierwszy_obieg:	.byte	0
 dodaj:
 	pushl	%ebp
 	movl	%esp, %ebp
+	movl	%eax, jakie_zaokraglenie
 	movb	liczba1_sign, %al
 	movb	liczba2_sign, %ah
 	cmpb	%al, %ah			#jak rozne znaki to odejmowanie
@@ -121,6 +123,9 @@ shift_mts1:
 
 	jmp	przesuwanie_1
 sprowadzone:
+	jnc	po_ustawieniu
+	movb	$1, bit_specjalny
+po_ustawieniu:
 	#trzeba zaalokowac pamiec na wynik
 	movl	liczba1_size, %eax
 	movl	%eax, wynik_size
@@ -151,31 +156,17 @@ dodanie_mantysy:
 	jnz	dodanie_mantysy
 
 	#trzeba sprawdzic ukryta jedynke
-	xorl	%eax, %eax
-	shrb	$1, %al					#przesun CF tutaj
-	test	$MASKA_CF, %al
-	jz	koniec
+	#xorl	%eax, %eax
+	#shrb	$1, %al					#przesun CF tutaj
+	#test	$MASKA_CF, %al
+	#jz	koniec
+
+    jnc koniec                      #jezeli nie trzeba normalizowac
+    call    normalizacja
+
+	movl	jakie_zaokraglenie, %eax
+	call	zaokraglenie
 	
-	#trzeba dodac te jednyke
-	movl	wynik_mts, %edi
-	xorl	%ebx, %ebx
-	stc	
-shift_wynik:
-	shrl	$1, (%edi, %ebx, 4)
-	incl	%ebx
-	cmpl	wynik_size ,%ebx
-	jnz	shift_wynik					#po kolei kazdy przsuwa po jednym (wykonuje jeden pelny shift)
-		
-zwiekszenie_mantysy:
-	movl	$wynik_exp, %edi
-	movl	4(%edi), %eax
-	movl	(%edi), %ebx
-	addl	$1, %eax
-	adcl	$0, %ebx
-	movl	%ebx, (%edi)
-	movl	%eax, 4(%edi)
-	xorl	%eax, %eax
-	jmp	koniec
 zle_znaki:
 	#movl	$-1, %eax			#kod bledu -1
 	call	odejmij

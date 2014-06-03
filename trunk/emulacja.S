@@ -9,6 +9,8 @@ SYSCALL = 0x80
 .globl	bit_specjalny
 bit_specjalny:	.byte	0	#potrzebne do informacji o zaokragleniu
 
+rodzaj_zaokraglenia:	.long	0
+
 .globl	liczba1_sign
 .globl	liczba1_exp
 .globl	liczba1_mts
@@ -40,6 +42,7 @@ wynik_size:	.long	0	#rozmiar tablicy (musi byc wyrownany do 4 bajtow)
 .include "przyklad.inc"
 
 menu:	.ascii	"Wybierz operacje z menu: \n1. Dodawanie\n2. Odejmowanie\n3. Mnozenie\n\0"
+zaok:	.ascii	"Wybierz sposob zaokraglania: \n0 - przez obciecie\n1 - do \"gory\"\n2 - do najblizszej parzystej\n\0"
 wybor:	.long	0
 wybor_fmt:	.ascii	"%d\0"
 
@@ -114,6 +117,16 @@ przepisanie_mant_2:
 koniec_liczba2:
 	#druga liczba juz w pamieci
 
+	#rodzaj zaokraglania
+	pushl	$zaok
+	call	printf
+	addl	$4, %esp
+
+	pushl	$rodzaj_zaokraglenia
+	pushl	$wybor_fmt
+	call	scanf
+	addl	$4*2, %esp
+
 	#menu
 	pushl	$menu
 	call	printf
@@ -130,6 +143,8 @@ koniec_liczba2:
 	jz wybor_odejmowanie
 	cmpl	$3, wybor
 	jnz	po_operacjach
+
+	movl	rodzaj_zaokraglenia, %eax			#parametr funkcji
 
 wybor_mnozenie:
 	call	mnoz
