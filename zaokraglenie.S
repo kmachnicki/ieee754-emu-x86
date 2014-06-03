@@ -33,26 +33,7 @@ dodaj_przeniesienie:
 	jge	dodaj_przeniesienie
 	jnc	koniec						#jak nie ma przeniesienia to koniec, a jak jest to trza przesunac wynik
 	
-przesun:
-	#trzeba dodac te jednyke
-	movl	wynik_mts, %edi
-	xorl	%ebx, %ebx
-	stc	
-shift_wynik:
-	shrl	$1, (%edi, %ebx, 4)
-	incl	%ebx
-	cmpl	wynik_size ,%ebx
-	jnz	shift_wynik					#po kolei kazdy przsuwa po jednym (wykonuje jeden pelny shift)
-		
-zwiekszenie_mantysy:
-	movl	$wynik_exp, %edi
-	movl	4(%edi), %eax
-	movl	(%edi), %ebx
-	addl	$1, %eax
-	adcl	$0, %ebx
-	movl	%ebx, (%edi)
-	movl	%eax, 4(%edi)
-	xorl	%eax, %eax
+    call    normalizacja
 
 	jmp	koniec
 

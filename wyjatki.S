@@ -1,4 +1,4 @@
-# Modul wynokujacy zaokraglenie wyniku
+# Modul wpisujacy w liczbe +inf -inf lub NaN
 
 .text
 .globl  inf_plus
