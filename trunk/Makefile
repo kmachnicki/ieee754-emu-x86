@@ -1,7 +1,7 @@
 # Makefile na potrzeby projektu
 CC=gcc
 CFLAGS=-m32 -lc -O0 -g
-OBJS=emulacja.o dodawanie.o odejmowanie.o mnozenie.o normalizacja.o zaokraglenie.o
+OBJS=emulacja.o dodawanie.o odejmowanie.o mnozenie.o normalizacja.o zaokraglenie.o wyjatki.o
 
 all: emulacja
 

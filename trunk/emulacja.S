@@ -6,6 +6,9 @@ SYSCALL = 0x80
 
 .data
 
+.globl	bit_specjalny
+bit_specjalny:	.byte	0	#potrzebne do informacji o zaokragleniu
+
 .globl	liczba1_sign
 .globl	liczba1_exp
 .globl	liczba1_mts
