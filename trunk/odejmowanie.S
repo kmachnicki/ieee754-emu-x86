@@ -40,8 +40,20 @@ odejmij:
 	jb	druga
 	
 druga:							#druga liczba jest wieksza
-	movl	liczba2_sign, %eax
-	movl	%eax, wynik_sign	#od razu przepisujemy znak od wiekszej	
+	movb	liczba2_sign, %al
+	movb	%al, wynik_sign	#od razu przepisujemy znak od wiekszej
+    
+    #przepisanie exp
+    pushl   %edi
+    pushl   %esi
+    movl    $liczba2_exp, %esi
+    movl    $wynik_exp, %edi
+    movl    (%esi), %eax
+    movl    %eax, (%edi)
+    movl    4(%esi), %eax
+    movl    %eax, 4(%edi)
+    popl    %esi
+    popl    %edi	
 
 	movl	4(%esi), %eax
 
@@ -89,6 +101,18 @@ shift_mts2:
 pierwsza:						#piersza liczba jest wieksza badz rowna
 	movl	liczba1_sign, %eax
 	movl	%eax, wynik_sign	#od razu przepisujemy znak od wiekszej	
+    
+    #przepisanie exp
+    pushl   %edi
+    pushl   %esi
+    movl    $liczba1_exp, %esi
+    movl    $wynik_exp, %edi
+    movl    (%esi), %eax
+    movl    %eax, (%edi)
+    movl    4(%esi), %eax
+    movl    %eax, 4(%edi)
+    popl    %esi
+    popl    %edi
 	
 	movl	4(%edi), %eax
 	movl	4(%esi), %ebx

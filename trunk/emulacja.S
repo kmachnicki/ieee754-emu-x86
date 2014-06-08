@@ -1,9 +1,5 @@
 # Tu bedzie modul glowny
 
-# Deklaracja stalych
-EXIT = 1
-SYSCALL = 0x80
-
 .data
 
 .globl	bit_specjalny
@@ -46,77 +42,208 @@ zaok:	.ascii	"Wybierz sposob zaokraglania: \n0 - przez obciecie\n1 - do \"gory\"
 wybor:	.long	0
 wybor_fmt:	.ascii	"%d\0"
 
+wynik_file:	.long	0	#wskaznik na strukture FILE biblioteki C do obslugi plikow
+wynik_tryb:	.ascii	"w+\0"
+wynik_name:	.ascii	"wynik.txt\0"	#nazwa pliku wynikowego
+
+zrodlo_file:	.long	0
+zrodlo_tryb:	.ascii	"r\0"
+zrodlo_name:	.ascii	"liczby.txt\0"
+
+jaki_rozmiar:	.long	0		#pierwsza zmienna w pliku oznacza jaki rozmiar zmiennych bedzie w pliku
+
+rozmiar_fmt:	.ascii	"%u\0"
+dane_fmt:	.ascii	"%u %016llx\0"
+dane_mnt:	.ascii	" %08x\0" 
+
+brak_plk:	.ascii	"Nie znaleziono pliku liczby.txt\0"
+brak_pam:	.ascii	"Nie mozna zaalokowac potrzebnej pamieci\0"
+blad_zapis:	.ascii	"Nie mozna utoworzyc pliku\0"
+
 # Zaczynamy kod
 .text
 .globl	main	#bedzie kompilowane pod gcc dla wygody
 main:
 
-	#dane z przykladu laduja tutaj (liczba 1)
-	movb	SIGN1, %al
-	movb	%al, liczba1_sign
-	movl	$1, %edi
-	movl	EXP1, %eax
-	movl	%eax, liczba1_exp( ,%edi, 4)
-	#sarl	$32, liczba1_exp
-	#movl	$1, %edi
-	movl	EXP1(, %edi, 4), %eax
-	movl	%eax, liczba1_exp
-	movl    ROZM1, %eax
+	#wczytywanie danych z pliku
+	pushl	$zrodlo_tryb
+	pushl	$zrodlo_name
+	call	fopen
+	addl	$4*2, %esp
+	movl	%eax, zrodlo_file	#wskaznik na FILE teraz w zrodlo_file
+	cmpl	$0, %eax
+	jz	brak_pliku					#jak nie ma pliku to nie konczymy
+	
+	#pobierz wielosc liczb
+	pushl	$jaki_rozmiar
+	pushl	$rozmiar_fmt
+	pushl	zrodlo_file
+	call	fscanf
+	addl	$4*3, %esp
+	movl	jaki_rozmiar, %eax
 	movl	%eax, liczba1_size
-	movl    $4, %ebx
-	mul     %ebx
+	movl	%eax, liczba2_size
+	
+	#alokacja rozmiaru mantyss dla obydwu liczb
+	movl	$4, %ebx			#long ma rozmiar 4 bajty, czyli do zaalokowania 4 * rozmiar mantysy
+	mull	%ebx
 	pushl	%eax
 	call	malloc
 	addl	$4, %esp
-	movl	%eax, liczba1_mts
-	#przepisanie tablicy (mantysy)
-	movl	liczba1_size, %ecx
-	xorl	%edx, %edx
-	movl	$mantyssa1, %esi
+	cmpl	$0, %eax
+	jz	brak_pamieci					#nie przydzielono pamieci to nie ma co robic
+	movl	%eax, liczba1_mts	#przypisanie pierwszego wskaznika
+	
+	movl	liczba2_size, %eax
+	movl	$4, %ebx
+	mull	%ebx
+	pushl	%eax
+	call	malloc
+	addl	$4, %esp
+	cmpl	$0, %eax
+	jz	brak_pamieci					#nie przydzielono pamieci to nie ma co robic
+	movl	%eax, liczba2_mts	#przypisanie drugiego wskaznika
+	
+	#wczytaj pierwsza liczbe
+	pushl	$liczba1_exp
+	pushl	$liczba1_sign
+	pushl	$dane_fmt
+	pushl	zrodlo_file
+	call	fscanf
+	addl	$4*4, %esp
+	
+	#zamiana exp
+	movl	$liczba1_exp, %edi
+	movl	(%edi), %eax
+	movl	4(%edi), %ebx
+	movl	%ebx, (%edi)
+	movl	%eax, 4(%edi)
+	
+	#wczytaj pierwsza mantyse
 	movl	liczba1_mts, %edi
-przepisanie_mant_1:
-	movl	(%esi, %edx, 4), %eax
-	movl	%eax, (%edi, %edx, 4)
-	incl	%edx
-	cmpl	liczba1_size, %edx
-	jz	koniec_liczba1
-	loop	przepisanie_mant_1
-koniec_liczba1:
-	#pierwsza liczba juz w pamieci
-
-	#dane z przykladu laduja tutaj (liczba 2)
-	movb	SIGN2, %al
-	movb	%al, liczba2_sign
-	movl	$1, %edi
-	movl	EXP2, %eax
-	movl	%eax, liczba2_exp( ,%edi, 4)
-	#sarl	$32, liczba2_exp
-	#movl	$1, %edi
-	movl	EXP2(, %edi, 4), %eax
-	movl	%eax, liczba2_exp
-	movl    ROZM2, %eax
-	movl    %eax, liczba2_size
-	movl    $4, %ebx
-	mull    %ebx
-	pushl	%eax
-	call	malloc
-	addl	$4, %esp
-	movl	%eax, liczba2_mts
-	#przepisanie tablicy (mantysy)
-	movl	liczba2_size, %ecx
-	xorl	%edx, %edx
-	movl	$mantyssa2, %esi
+	xorl	%ecx, %ecx
+wczytaj1_mts:
+	pushl	%ecx				#zachowaj licznik
+	
+	#movl	liczba1_mts( ,%ecx, 4), %esi	#powinno zwrocic adres a nie liczbe
+	
+	pushl	%edi
+	pushl	$dane_mnt
+	pushl	zrodlo_file
+	call	fscanf
+	addl	$4*3, %esp
+	
+	popl	%ecx
+	addl	$4, %edi
+	incl	%ecx
+	cmpl	liczba1_size, %ecx
+	jnz	wczytaj1_mts
+	
+	#wczytaj druga liczbe
+	pushl	$liczba2_exp
+	pushl	$liczba2_sign
+	pushl	$dane_fmt
+	pushl	zrodlo_file
+	call	fscanf
+	addl	$4*4, %esp
+	
+	#zamiana exp
+	movl	$liczba2_exp, %edi
+	movl	(%edi), %eax
+	movl	4(%edi), %ebx
+	movl	%ebx, (%edi)
+	movl	%eax, 4(%edi)
+	
+	#wczytaj druga mantyse
 	movl	liczba2_mts, %edi
-przepisanie_mant_2:
-	movl	(%esi, %edx, 4), %eax
-	movl	%eax, (%edi, %edx, 4)
-	incl	%edx
-	cmpl	liczba2_size, %edx
-	jz	koniec_liczba2
-	loop	przepisanie_mant_2
-koniec_liczba2:
-	#druga liczba juz w pamieci
-
+	xorl	%ecx, %ecx
+wczytaj2_mts:
+	pushl	%ecx				#zachowaj licznik
+	
+	#movl	liczba2_mts( ,%ecx, 4), %esi	#powinno zwrocic adres a nie liczbe
+	pushl	%edi
+	pushl	$dane_mnt
+	pushl	zrodlo_file
+	call	fscanf
+	addl	$4*3, %esp
+	
+	popl	%ecx
+	addl	$4, %edi
+	incl	%ecx
+	cmpl	liczba2_size, %ecx
+	jnz	wczytaj2_mts
+	
+	#liczby wczytane, trzeba zwolnic uchwyt FILE
+	pushl	zrodlo_file
+	call	fclose
+	addl	$4, %esp
+	
+	#dane z przykladu laduja tutaj (liczba 1)
+#	movb	SIGN1, %al
+#	movb	%al, liczba1_sign
+#	movl	$1, %edi
+#	movl	EXP1, %eax
+#	movl	%eax, liczba1_exp( ,%edi, 4)
+#	#sarl	$32, liczba1_exp
+#	#movl	$1, %edi
+#	movl	EXP1(, %edi, 4), %eax
+#	movl	%eax, liczba1_exp
+#	movl    ROZM1, %eax
+#	movl	%eax, liczba1_size
+#	movl    $4, %ebx
+#	mul     %ebx
+#	pushl	%eax
+#	call	malloc
+#	addl	$4, %esp
+#	movl	%eax, liczba1_mts
+#	#przepisanie tablicy (mantysy)
+#	movl	liczba1_size, %ecx
+#	xorl	%edx, %edx
+#	movl	$mantyssa1, %esi
+#	movl	liczba1_mts, %edi
+#przepisanie_mant_1:
+#	movl	(%esi, %edx, 4), %eax
+#	movl	%eax, (%edi, %edx, 4)
+#	incl	%edx
+#	cmpl	liczba1_size, %edx
+#	jz	koniec_liczba1
+#	loop	przepisanie_mant_1
+#koniec_liczba1:
+#	#pierwsza liczba juz w pamieci
+#
+#	#dane z przykladu laduja tutaj (liczba 2)
+#	movb	SIGN2, %al
+#	movb	%al, liczba2_sign
+#	movl	$1, %edi
+#	movl	EXP2, %eax
+#	movl	%eax, liczba2_exp( ,%edi, 4)
+#	#sarl	$32, liczba2_exp
+#	#movl	$1, %edi
+#	movl	EXP2(, %edi, 4), %eax
+#	movl	%eax, liczba2_exp
+#	movl    ROZM2, %eax
+#	movl    %eax, liczba2_size
+#	movl    $4, %ebx
+#	mull    %ebx
+#	pushl	%eax
+#	call	malloc
+#	addl	$4, %esp
+#	movl	%eax, liczba2_mts
+#	#przepisanie tablicy (mantysy)
+#	movl	liczba2_size, %ecx
+#	xorl	%edx, %edx
+#	movl	$mantyssa2, %esi
+#	movl	liczba2_mts, %edi
+#przepisanie_mant_2:
+#	movl	(%esi, %edx, 4), %eax
+#	movl	%eax, (%edi, %edx, 4)
+#	incl	%edx
+#	cmpl	liczba2_size, %edx
+#	jz	koniec_liczba2
+#	loop	przepisanie_mant_2
+#koniec_liczba2:
+#	#druga liczba juz w pamieci
+#
 	#rodzaj zaokraglania
 	pushl	$zaok
 	call	printf
@@ -156,6 +283,58 @@ wybor_odejmowanie:
 
 wybor_dodawanie:
 	call	dodaj	
+	
+	#zamiana przed zapisem
+	movl	$wynik_exp, %edi
+	movl	(%edi), %eax
+	movl	4(%edi), %ebx
+	movl	%ebx, (%edi)
+	movl	%eax, 4(%edi)
+	
+zapisz_do_pliku:
+	pushl	$wynik_tryb
+	pushl	$wynik_name
+	call	fopen
+	addl	$4*2, %esp
+	movl	%eax, wynik_file
+	cmpl	$0, %eax
+	jz	blad_zapisu
+	
+	movl	$1, %eax
+	
+	movl	wynik_exp( ,%eax, 4), %edi
+	pushl	%edi
+	pushl	wynik_exp
+	xorl	%eax, %eax
+	movb	wynik_sign, %al
+	pushl	%eax
+	pushl	$dane_fmt
+	pushl	wynik_file
+	call	fprintf
+	addl	$4*5, %esp
+	
+	movl	wynik_mts, %esi
+	xorl	%ecx, %ecx
+petla_wpisujaca:
+	movl	(%esi, %ecx, 4), %eax
+	
+	pushl	%ecx
+	
+	pushl	%eax
+	pushl	$dane_mnt
+	pushl	wynik_file
+	call	fprintf
+	addl	$4*3, %esp
+	
+	popl	%ecx
+	incl	%ecx
+	cmpl	wynik_size, %ecx
+	jnz	petla_wpisujaca
+	
+	#zamknij plik
+	pushl	wynik_file
+	call	fclose
+	addl	$4, %esp
 
 po_operacjach:
 	#zwalnianie pamieci
@@ -177,6 +356,27 @@ po_operacjach:
 koniec:
 	pushl	$0
 	call	exit			#much portable wow
+	
+	ret						#dla pewnosci
+	
+#oblsuga bledow	
+brak_pliku:
+	pushl	$brak_plk
+	call	puts
+	addl	$4, %esp
+	jmp	koniec
+	
+brak_pamieci:
+	pushl	$brak_pam
+	call	puts
+	addl	$4, %esp
+	jmp	koniec
+	
+blad_zapisu:
+	pushl	$blad_zapis
+	call	puts
+	addl	$4, %esp
+	jmp	koniec
 
 # Cos juz jest
 
