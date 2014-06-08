@@ -40,13 +40,13 @@ odejmij:
 	jb	druga
 	
 druga:							#druga liczba jest wieksza
-	movb	liczba2_sign, %al
+	movb	liczba1_sign, %al
 	movb	%al, wynik_sign	#od razu przepisujemy znak od wiekszej
     
     #przepisanie exp
     pushl   %edi
     pushl   %esi
-    movl    $liczba2_exp, %esi
+    movl    $liczba1_exp, %esi
     movl    $wynik_exp, %edi
     movl    (%esi), %eax
     movl    %eax, (%edi)
@@ -99,13 +99,13 @@ shift_mts2:
 	jmp	przesuwanie
 
 pierwsza:						#piersza liczba jest wieksza badz rowna
-	movl	liczba1_sign, %eax
+	movl	liczba2_sign, %eax
 	movl	%eax, wynik_sign	#od razu przepisujemy znak od wiekszej	
     
     #przepisanie exp
     pushl   %edi
     pushl   %esi
-    movl    $liczba1_exp, %esi
+    movl    $liczba2_exp, %esi
     movl    $wynik_exp, %edi
     movl    (%esi), %eax
     movl    %eax, (%edi)
