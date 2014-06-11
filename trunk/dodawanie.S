@@ -179,23 +179,31 @@ dodanie_mantysy:
 	cmpl	$0, %edx				#czy juz wsio dodane
 	jnz	dodanie_mantysy
 
-	#trzeba sprawdzic ukryta jedynke
-	#xorl	%eax, %eax
-	#shrb	$1, %al					#przesun CF tutaj
-	#test	$MASKA_CF, %al
-	#jz	koniec
-
     jnc koniec                      #jezeli nie trzeba normalizowac
     call    normalizacja
-
-	movl	jakie_zaokraglenie, %eax
-	call	zaokraglenie
 	
 zle_znaki:
 	#movl	$-1, %eax			#kod bledu -1
 	call	odejmij
 
 koniec:
+
+    movl	jakie_zaokraglenie, %eax
+	call	zaokraglenie
+    
+    #sprawdz czy nie wyszlo zero
+	movl	wynik_mts, %edi
+	movl	wynik_size, %ecx
+	xorl	%edx, %edx
+czy_zero:
+	movl	(%edi, %edx, 4), %eax
+	incl	%edx
+	cmpl	$0, %eax
+	jnz	nie_zero
+	loop	czy_zero
+	
+	call ZeroNumb
+nie_zero:    
 	leave
 	ret
 
