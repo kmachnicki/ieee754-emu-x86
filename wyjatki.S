@@ -10,7 +10,7 @@ inf_plus:
 	movb	$0, wynik_sign
 	movl	$wynik_exp, %edi
 	movl	$0xFFFFFFFF, 4(%edi)
-	movl	$0xFFFFFFFF, %edi
+	movl	$0xFFFFFFFF, (%edi)
 	
 	#wyzeruj mantyse
 	call	zeruj_mantyse
@@ -27,7 +27,7 @@ inf_minus:
 	movb	$1, wynik_sign
 	movl	$wynik_exp, %edi
 	movl	$0xFFFFFFFF, 4(%edi)
-	movl	$0xFFFFFFFF, %edi
+	movl	$0xFFFFFFFF, (%edi)
 	
 	#wyzeruj mantyse
 	call	zeruj_mantyse
@@ -44,7 +44,7 @@ NaN:
 	#movb	$0, wynik_sign
 	movl	$wynik_exp, %edi
 	movl	$0xFFFFFFFF, 4(%edi)
-	movl	$0xFFFFFFFF, %edi
+	movl	$0xFFFFFFFF, (%edi)
 	
 	#wyzeruj mantyse
 	call	zeruj_mantyse
@@ -58,6 +58,18 @@ NaN:
 
     leave
     ret
+    
+.globl  ZeroNumb
+.type   ZeroNumb, @function
+ZeroNumb:
+    pushl	%ebp
+	movl	%esp, %ebp
+    movl	$wynik_exp, %edi
+	movl	$0, 4(%edi)
+	movl	$0, (%edi) 
+    call    zeruj_mantyse
+    leave
+    ret
 
 .globl	zeruj_mantyse
 .type	zeruj_mantyse, @function
@@ -68,8 +80,8 @@ zeruj_mantyse:
 	movl	wynik_size, %ecx
 	xorl	%edx, %edx
 zeruj:
-	movl	$0, (%edi, %ecx, 4)
-	incl	%ecx
+	movl	$0, (%edi, %edx, 4)
+	incl	%edx
 	loop	zeruj
 	leave
 	ret

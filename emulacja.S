@@ -1,4 +1,4 @@
-# Tu bedzie modul glowny
+# Modul glowny
 
 .data
 
@@ -283,7 +283,8 @@ wybor_odejmowanie:
 
 wybor_dodawanie:
 	call	dodaj	
-	
+
+po_operacjach:	
 	#zamiana przed zapisem
 	movl	$wynik_exp, %edi
 	movl	(%edi), %eax
@@ -336,7 +337,7 @@ petla_wpisujaca:
 	call	fclose
 	addl	$4, %esp
 
-po_operacjach:
+
 	#zwalnianie pamieci
 	pushl	liczba1_mts
 	call	free
@@ -355,9 +356,9 @@ po_operacjach:
 
 koniec:
 	pushl	$0
-	call	exit			#much portable wow
+	call	exit
 	
-	ret						#dla pewnosci
+	ret	
 	
 #oblsuga bledow	
 brak_pliku:
@@ -378,5 +379,4 @@ blad_zapisu:
 	addl	$4, %esp
 	jmp	koniec
 
-# Cos juz jest
 
