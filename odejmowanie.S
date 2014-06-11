@@ -181,12 +181,6 @@ odjecie_mantysy:
 
 	cmpl	$0, %edx				#czy juz wsio odjete
 	jnz	odjecie_mantysy
-
-	#trzeba sprawdzic ukryta jedynke (czy wystapilo przeniesienie)
-	#xorl	%eax, %eax
-	#shrb	$1, %al					#przesun CF tutaj
-	#test	$MASKA_CF, %al
-	#jz	koniec
     
     jnc koniec
     call    normalizacja
@@ -199,6 +193,24 @@ zle_znaki:
 	call	dodaj
 
 koniec:
+
+    movl	jakie_zaokraglenie, %eax
+	call	zaokraglenie
+
+    #sprawdz czy nie wyszlo zero
+	movl	wynik_mts, %edi
+	movl	wynik_size, %ecx
+	xorl	%edx, %edx
+czy_zero:
+	movl	(%edi, %edx, 4), %eax
+	incl	%edx
+	cmpl	$0, %eax
+	jnz	nie_zero
+	loop	czy_zero
+	
+	call ZeroNumb
+nie_zero: 
+
 	leave
 	ret
 

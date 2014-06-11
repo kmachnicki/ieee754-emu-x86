@@ -4,6 +4,8 @@ MASKA_CF = 0b10000000
 BIAS_H = 0x7FFFFDFF
 BIAS_L = 0xFFFFFFFF
 
+MASKA_TEST = 0b10000000000000000000000000000000
+
 .data
 czy_pierwszy_obieg:	.byte	0
 pamiec_pomoc:	.long	0
@@ -105,32 +107,6 @@ zeruj:
 	jnz	zeruj
 
 	#mnozenie
-#mnozenie:
-#	movl	liczba1_size, %eax
-#	movl	%eax, %edx
-#	mull	%edx				#nowa tablica ma x2 dlugosci
-#    movl    %eax, %edx
-#	movl	liczba1_mts, %esi
-#	movl	liczba2_mts, %edi
-#	decl	%edx
-#	pushl	%ebp
-#	movl	%edx, %ebp
-#petla_mnozenie:
-#	decl	%ecx
-#	movl	(%esi, %ecx, 4), %eax
-#	movl	(%edi, %ecx, 4), %ebx
-#	mull	%ebx
-#	pushl	%edi
-#	movl	wynik_mts, %edi
-#	movl	%eax, (%edi, %ebp, 4)
-#	decl	%ebp
-#	movl	%edx, (%edi, %ebp, 4)
-#	popl	%edi
-#	cmpl	$0, %ecx
-#	jnz	petla_mnozenie
-#	popl	%ebp
-
-	#mnozenie
 	movl    liczba1_mts, %edi
 	movl    liczba2_mts, %esi
 	movl	liczba2_size, %ecx
@@ -164,23 +140,30 @@ petla2_mnoz:
 	incl	ktore_przejscie
 	cmpl	$0, %ecx
 	jnz	petla_mnoz
-
-	#trzeba sprawdzic ukryta jedynke
-	#xorl	%eax, %eax
-	#shrb	$1, %al					#przesun CF tutaj
-	#test	$MASKA_CF, %al
-	#jz	koniec
 	
 	jnc koniec
 	call    normalizacja
-	
+
+koniec:
+	#sprawdzenie czy jest co zaokraglac
+	movl	wynik_size, %ecx
+	movl	wynik_mts, %edi
+	movl	(%edi, %ecx, 4), %eax
+	test	$MASKA_TEST, %eax
+	jz	nie_ustawiac
+	movb	$1, bit_specjalny
+	jmp	okr
+nie_ustawiac:
+	movb	$0, bit_specjalny
+
+okr:
 	movl	jakie_zaokraglenie, %eax
 	call	zaokraglenie
 
-koniec:
 	#przy koncu trzeba zwrocic znowu taki sam rozmiar jak na poczatku (nastepuje obciecie)
 	movl	wynik_size, %eax
-	imull	$4, %eax
+	movl	$4, %ebx
+	mull	%ebx
 	pushl	%eax
 	call	malloc
 	addl	$4, %esp
