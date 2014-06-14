@@ -113,6 +113,23 @@ nie_ma_overflow2:
     popl    %esi
 
 sprowadzone:
+	#trzeba ujawinić jedynkę
+	movl	liczba1_mts, %esi
+	movl	liczba2_mts, %edi
+	xorl	%ebx, %ebx
+	stc
+odkryj_jedynke1:
+	rcrl	$1, (%esi, %ebx, 4)
+	incl	%ebx
+	loop    odkryj_jedynke1
+	
+	xorl	%ebx, %ebx
+	stc
+odkryj_jedynke2:
+	rcrl	$1, (%edi, %ebx, 4)
+	incl	%ebx
+	loop    odkryj_jedynke2
+
 	# Alokacja pamieci na wynik
 	movl	liczba1_size, %eax
 	movl	%eax, wynik_size
@@ -173,8 +190,28 @@ petla2_mnoz:
 	cmpl	$0, %ecx
 	jnz	petla_mnoz
 	
-	jnc koniec
-	call    normalizacja
+	#jnc koniec
+	#call    normalizacja
+	
+	#chwilowo tutaj normalizacja
+	movl	wynik_mts, %edi
+    movl    wynik_size, %ecx
+	movl    %ecx, %ebx
+	clc
+	
+shift_wynik2:
+    decl    %ebx
+	rcll	$1, (%edi, %ebx, 4)
+	loop    shift_wynik2
+		
+zwiekszenie_mantysy:
+	movl	$wynik_exp, %edi
+	movl	4(%edi), %eax
+	movl	(%edi), %ebx
+	addl	$1, %eax
+	adcl	$0, %ebx
+	movl	%ebx, (%edi)
+	movl	%eax, 4(%edi)
 
 koniec:
 	# Sprawdzenie czy jest co zaokraglac
