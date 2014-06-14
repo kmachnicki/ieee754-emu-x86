@@ -1,10 +1,12 @@
-# Modul dodajacy 2 liczby zmiennoprzecinkowe
-
-MASKA_CF = 0b10000000
+##############################################
+# Modul dodajacy 2 liczby zmiennoprzecinkowe #
+##############################################
 
 .data
 czy_pierwszy_obieg:	.byte	0
 jakie_zaokraglenie:	.long	0
+iterator_1:			.long	0
+iterator_2:			.long	0
 
 .text
 .globl	dodaj
@@ -12,26 +14,17 @@ jakie_zaokraglenie:	.long	0
 dodaj:
 	pushl	%ebp
 	movl	%esp, %ebp
+	
 	movl	%eax, jakie_zaokraglenie
 	movb	liczba1_sign, %al
 	movb	liczba2_sign, %ah
-	cmpb	%al, %ah			#jak rozne znaki to odejmowanie
+	cmpb	%al, %ah			# Jak rozne znaki to przechodzimy do odejmowania
 	jnz	zle_znaki
 
 	movb	%al, wynik_sign
 
-	#movl	$0, %edx
 	movl	$liczba1_exp, %esi
 	movl	$liczba2_exp, %edi
-
-	#movl	(%esi, %edx, 4), %eax
-	#movl	(%edi, %edx, 4), %ebx
-	#subl	%eax, %ebx			#rozniaca wykladnikow
-
-	#incl	%edx
-	#movl	(%esi, %edx, 4), %eax
-	#movl	(%edi, %edx, 4), %edx
-	#subl	%eax, %edx			#roznica mlodszych(starszych) czesci
 
 	movl	(%edi), %eax
 	movl	4(%edi), %edx
@@ -42,15 +35,15 @@ dodaj:
 	cmpl	(%esi), %eax
 	jb	druga
 	
-druga:							#druga liczba jest wieksza
+druga:							# W wypadku gdy druga liczba jest wieksza
 	movl	4(%esi), %eax
 
 	pushl	%edi
 	movl	$wynik_exp, %edi
-	movl	%eax, 4(%edi)		#przepisanie wiekszej exponenty
+	movl	%eax, 4(%edi)		# Przepisanie wiekszej eksponenty
 	popl	%edi
     
-    #przepisanie exp
+    # Przepisanie eksponenty
     pushl   %edi
     pushl   %esi
     movl    $liczba1_exp, %esi
@@ -66,40 +59,42 @@ druga:							#druga liczba jest wieksza
 	subl	%ebx, %eax
 
 	movl	(%esi), %ecx
-	movl	%ecx, wynik_exp		#druga czesc przepisania
+	movl	%ecx, wynik_exp		# Druga czesc przepisania
 	movl	(%edi), %edx
-	sbbl	%edx, %ecx			# ecx:eax roznica
+	sbbl	%edx, %ecx			# Wynik roznicy w ecx:eax
 
-	movb	$1, czy_pierwszy_obieg	#zeby ujawnic jedynke
-
+	# Wyliczenie mantysy
 	movl	liczba2_mts, %edi
-przesuwanie:
-	decl	%eax
+	movl	%eax, iterator_1
+	movl	%ecx, iterator_2
+	movl	liczba2_size, %ecx
 	xorl	%ebx, %ebx
-	clc							#usun CF zeby nie przenioslo z konca przniesienia na poczatek
-	cmpb	$1, czy_pierwszy_obieg
-	jnz	shift_mts2				#jezeli to kolejne przjscie to nie ustawiaj CF
-	stc							#zostanie przeniesiony w shr bit z CF czyli utajniona jedynka z 1.00f -> 0.10f
-shift_mts2:
-	shrl	$1, (%edi, %ebx, 4)
-	incl	%ebx
-	cmpl	liczba2_size ,%ebx
-	jnz	shift_mts2				#po kolei kazdy przsuwa po jednym (wykonuje jeden pelny shift)
-	movb	$0, czy_pierwszy_obieg
-
-	cmpl	$0, %eax			#czy jednosci rowne 0
-	jnz	przesuwanie
-
-	cmpl	$0, %ecx			#czy juz wszystko przesuniete
-	jz	sprowadzone
+	stc
 	
-	decl	%ecx
-	movl	$0xFFFFFF, %eax		#jak przekroczony to zabieramy z wyzszego
+shift_2:
+	rcrl	$1, (%edi, %ebx, 4)
+	incl	%ebx
+	loop	shift_2
+	decl	iterator_1
+	cmpl	$0, iterator_1
+	jnz	powtorz_2
+	cmpl	$0, iterator_2
+	jz koniec_shift_2
+	
+	# Zabranie z wyzszego
+	decl	iterator_2
+	movl	$0xFFFFFFFF, iterator_1
+	
+powtorz_2:
+	movl	liczba2_size, %ecx
+	xorl	%ebx, %ebx
+	clc
+	jmp	shift_2
+	
+koniec_shift_2:
 
-	jmp	przesuwanie
-
-pierwsza:						#piersza liczba jest wieksza badz rowna
-    #przepisanie exp
+pierwsza:						# W wypadku gdy pierwsza liczba jest wieksza lub rowna
+    # Przepisanie eksponenty
     pushl   %edi
     pushl   %esi
     movl    $liczba2_exp, %esi
@@ -117,40 +112,43 @@ pierwsza:						#piersza liczba jest wieksza badz rowna
 
 	movl	(%edi), %ecx
 	movl	(%esi), %edx
-	sbbl	%edx, %ecx			# ecx:eax roznica
+	sbbl	%edx, %ecx			# Wynik roznicy w ecx:eax
 	
-	movb	$1, czy_pierwszy_obieg	#zeby ujawnic jedynke
-
 	movl	liczba1_mts, %edi
-przesuwanie_1:
-	decl	%eax
+	movl	%eax, iterator_1
+	movl	%ecx, iterator_2
+	movl	liczba1_size, %ecx
+	xorl	%ebx, %ebx
+	stc
+	
+shift_1:
+	rcrl	$1, (%edi, %ebx, 4)
+	incl	%ebx
+	loop	shift_1
+	decl	iterator_1
+	cmpl	$0, iterator_1
+	jnz	powtorz_1
+	cmpl	$0, iterator_2
+	jz koniec_shift_1
+	
+	# Zabranie z wyzszego
+	decl	iterator_2
+	movl	$0xFFFFFFFF, iterator_1
+	
+powtorz_1:
+	movl	liczba1_size, %ecx
 	xorl	%ebx, %ebx
 	clc
-	cmpb	$1, czy_pierwszy_obieg
-	jnz	shift_mts2				#jezeli to kolejne przjscie to nie ustawiaj CF
-	stc							#zostanie przeniesiony w shr bit z CF czyli utajniona jedynka z 1.00f -> 0.10f
-shift_mts1:
-	shrl	$1, (%edi, %ebx, 4)
-	incl	%ebx
-	cmpl	liczba1_size ,%ebx
-	jnz	shift_mts1				#po kolei kazdy przsuwa po jednym (wykonuje jeden pelny shift)
-	movb	$0, czy_pierwszy_obieg
-
-	cmpl	$0, %eax			#czy jednosci rowne 0
-	jnz	przesuwanie_1
-
-	cmpl	$0, %ecx			#czy juz wszystko przesuniete
-	jz	sprowadzone
+	jmp	shift_1
 	
-	decl	%ecx
-	movl	$0xFFFFFF, %eax		#jak przekroczony to zabieramy z wyzszego
+koniec_shift_1:
 
-	jmp	przesuwanie_1
 sprowadzone:
 	jnc	po_ustawieniu
 	movb	$1, bit_specjalny
+	
 po_ustawieniu:
-	#trzeba zaalokowac pamiec na wynik
+	# Alokacja pamieci na wynik
 	movl	liczba1_size, %eax
 	movl	%eax, wynik_size
 	imull	$4, %eax
@@ -159,13 +157,12 @@ po_ustawieniu:
 	addl	$4, %esp
 	movl	%eax, wynik_mts
 
-	#liczby sprowadzone do jednego wspolnej potegi (teraz dodawanie)
+	# Liczby sprowadzone do wspolnej potegi (teraz dodawanie)
 	movl	liczba1_mts, %esi
 	movl	liczba2_mts, %edi
-
 	movl	liczba1_size, %edx
-
 	clc
+	
 dodanie_mantysy:
 	decl	%edx
 	movl	(%esi, %edx, 4), %eax
@@ -176,22 +173,20 @@ dodanie_mantysy:
 	movl	%ebx, (%edi, %edx, 4)
 	popl	%edi
 
-	cmpl	$0, %edx				#czy juz wsio dodane
+	cmpl	$0, %edx				# Czy juz wszystko zostalo dodane
 	jnz	dodanie_mantysy
 
-    jnc koniec                      #jezeli nie trzeba normalizowac
+    jnc koniec                      # W wypadku gdy nie trzeba znormalizowac
     call    normalizacja
 	
 zle_znaki:
-	#movl	$-1, %eax			#kod bledu -1
-	call	odejmij
+	call	odejmij					# Wywolanie odejmowania
 
 koniec:
-
     movl	jakie_zaokraglenie, %eax
 	call	zaokraglenie
     
-    #sprawdz czy nie wyszlo zero
+    # Sprawdzenie czy nie wyszlo zero
 	movl	wynik_mts, %edi
 	movl	wynik_size, %ecx
 	xorl	%edx, %edx
@@ -203,7 +198,7 @@ czy_zero:
 	loop	czy_zero
 	
 	call ZeroNumb
-nie_zero:    
+	
+nie_zero:
 	leave
 	ret
-
