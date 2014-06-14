@@ -18,9 +18,13 @@ odejmij:
 	movl	%esp, %ebp
 	movb	liczba1_sign, %al
 	movb	liczba2_sign, %ah
-	cmpb	%al, %ah			# Jak takie same znaki to przechodzimy do dodawania
-	jz	zle_znaki
-
+	#cmpb	%al, %ah			# Jak takie same znaki to przechodzimy do dodawania
+	#jz	zle_znaki
+    cmpb    $0, %al
+    jz  dobre_znaki
+    cmpb    $0, %ah
+    jnz zle_znaki
+dobre_znaki:
 	movl	$liczba1_exp, %esi
 	movl	$liczba2_exp, %edi
     
