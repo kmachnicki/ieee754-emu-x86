@@ -138,7 +138,7 @@ pierwsza:						# W wypadku gdy pierwsza liczba jest mniejsza lub rowna
 	movl	(%esi), %edx
 	sbbl	%edx, %ecx			# Wynik roznicy w ecx:eax
     
-    cmpl    $0, %edx
+    cmpl    $0, %eax
     jnz nie_rowne_zero_ecxeax
     cmpl    $0, %ecx
     jz  po_ustawieniu
