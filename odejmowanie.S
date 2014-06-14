@@ -182,6 +182,8 @@ odejmij_exp:
 	movl	%ebx, (%edi)
 	movl	%eax, 4(%edi)
 	
+	jmp	po_ustawieniu
+	
 nie_rowne_zero_ecxeax:
 	movl	liczba1_mts, %edi
 	movl	%eax, iterator_1
