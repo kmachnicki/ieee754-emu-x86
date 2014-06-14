@@ -142,7 +142,7 @@ pierwsza:						# W wypadku gdy pierwsza liczba jest wieksza lub rowna
 	movl	(%esi), %edx
 	sbbl	%edx, %ecx			# Wynik sumy w ecx:eax
     
-    cmpl    $0, %edx
+    cmpl    $0, %eax
     jnz nie_rowne_zero_ecxeax
     cmpl    $0, %ecx
     jz  po_ustawieniu
