@@ -62,7 +62,7 @@ nie_ma_NaN:
 	cmpl	(%esi), %eax
 	jnb	pierwsza
 	
-druga:							# W wypadku gdy druga liczba jest wieksza
+druga:							# W wypadku gdy druga liczba jest mniejsza
 	movb	liczba1_sign, %al
 	movb	%al, wynik_sign		# Przepisujemy znak od wiekszej
     
@@ -128,7 +128,7 @@ powtorz_2:
 	
 koniec_shift_2:
 
-pierwsza:						# W wypadku gdy pierwsza liczba jest wieksza lub rowna
+pierwsza:						# W wypadku gdy pierwsza liczba jest miejsza lub rowna
 	movb	liczba2_sign, %al
 	movb	%al, wynik_sign	# Przepisujemy znak od wiekszej
     
@@ -166,12 +166,21 @@ czy_zero1:
 	movl	(%edi, %edx, 4), %eax
     movl    (%esi, %edx, 4), %ebx
     cmpl    %eax, %ebx
-    jnz po_ustawieniu               #mantysy nie rowne
+    jnz odejmij_exp               #mantysy nie rowne
 	incl	%edx
 	loop	czy_zero1
 	
 	call ZeroNumb
 	jmp nie_zero
+    
+odejmij_exp:
+    movl	$wynik_exp, %edi
+	movl	4(%edi), %eax
+	movl	(%edi), %ebx
+	subl	$1, %eax
+	sbbl	$0, %ebx
+	movl	%ebx, (%edi)
+	movl	%eax, 4(%edi)
 	
 nie_rowne_zero_ecxeax:
 	movl	liczba1_mts, %edi
@@ -237,9 +246,9 @@ odejmij_kolejny:
 
 	loop odjecie_mantysy
     
-    cmpb    $0, czy_normalizowac    # W wypadku gdy nie trzeba znormalizowac
-    jz  koniec
-    call    normalizacja
+    #cmpb    $0, czy_normalizowac    # W wypadku gdy nie trzeba znormalizowac
+    #jz  koniec
+    call    normalizacjaOdejmowanie             #normalizuj
 	jmp koniec
 	
 zle_znaki:
@@ -249,19 +258,6 @@ koniec:
     movl	jakie_zaokraglenie, %eax
 	call	zaokraglenie
 
-    # Sprawdzenie czy nie wyszlo zero
-	movl	wynik_mts, %edi
-	movl	wynik_size, %ecx
-	xorl	%edx, %edx
-	
-#czy_zero:
-#	movl	(%edi, %edx, 4), %eax
-#	incl	%edx
-#	cmpl	$0, %eax
-#	jnz	nie_zero
-#	loop	czy_zero
-	
-#	call ZeroNumb
 	
 nie_zero:
 	leave
