@@ -25,6 +25,21 @@ dodaj:
 
 	movl	$liczba1_exp, %esi
 	movl	$liczba2_exp, %edi
+    
+    #sprawdzenie czy jedna z liczb nie jest NaNem
+    cmpl    $0xFFFFFFFF, 4(%esi)
+    jnz pierwsza_nie_NaN
+    cmpl    $0xFFFFFFFF, (%esi) 
+    jz  wystapil_NaN
+pierwsza_nie_NaN:
+    cmpl    $0xFFFFFFFF, 4(%edi) 
+    jnz nie_ma_NaN
+    cmpl    $0xFFFFFFFF, (%edi) 
+    jnz nie_ma_NaN
+wystapil_NaN:
+    call    NaN
+    jmp nie_zero
+nie_ma_NaN:
 
 	movl	(%edi), %eax
 	movl	4(%edi), %edx
@@ -33,9 +48,9 @@ dodaj:
 	cmpl	4(%esi), %edx
 	jg	pierwsza
 	cmpl	(%esi), %eax
-	jb	druga
+	jnb	pierwsza
 	
-druga:							# W wypadku gdy druga liczba jest wieksza
+druga:							# W wypadku gdy druga liczba jest mniejsza
 	movl	4(%esi), %eax
 
 	pushl	%edi
@@ -75,11 +90,17 @@ shift_2:
 	rcrl	$1, (%edi, %ebx, 4)
 	incl	%ebx
 	loop	shift_2
+    jnc nie_cf2
+	movb	$1, bit_specjalny
+	jmp	po_cf2
+nie_cf2:
+	movb	$0, bit_specjalny
+po_cf2:
 	decl	iterator_1
 	cmpl	$0, iterator_1
 	jnz	powtorz_2
 	cmpl	$0, iterator_2
-	jz koniec_shift_2
+	jz po_ustawieniu
 	
 	# Zabranie z wyzszego
 	decl	iterator_2
@@ -92,8 +113,9 @@ powtorz_2:
 	jmp	shift_2
 	
 koniec_shift_2:
+    jmp po_ustawieniu
 
-pierwsza:						# W wypadku gdy pierwsza liczba jest wieksza lub rowna
+pierwsza:						# W wypadku gdy pierwsza liczba jest mniejsza lub rowna
     # Przepisanie eksponenty
     pushl   %edi
     pushl   %esi
@@ -125,6 +147,12 @@ shift_1:
 	rcrl	$1, (%edi, %ebx, 4)
 	incl	%ebx
 	loop	shift_1
+    jnc	nie_cf1
+	movb	$1, bit_specjalny
+	jmp	po_cf1
+nie_cf1:
+	movb	$0, bit_specjalny
+po_cf1:
 	decl	iterator_1
 	cmpl	$0, iterator_1
 	jnz	powtorz_1
@@ -143,10 +171,6 @@ powtorz_1:
 	
 koniec_shift_1:
 
-sprowadzone:
-	jnc	po_ustawieniu
-	movb	$1, bit_specjalny
-	
 po_ustawieniu:
 	# Alokacja pamieci na wynik
 	movl	liczba1_size, %eax
