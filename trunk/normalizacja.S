@@ -9,13 +9,13 @@ normalizacja:
     
     #trzeba dodac te jednyke
 	movl	wynik_mts, %edi
+    movl    wynik_size, %ecx
 	xorl	%ebx, %ebx
 	stc	
 shift_wynik:
-	shrl	$1, (%edi, %ebx, 4)
+	rcrl	$1, (%edi, %ebx, 4)
 	incl	%ebx
-	cmpl	wynik_size ,%ebx
-	jnz	shift_wynik					#po kolei kazdy przsuwa po jednym (wykonuje jeden pelny shift)
+	loop    shift_wynik
 		
 zwiekszenie_mantysy:
 	movl	$wynik_exp, %edi
@@ -23,11 +23,12 @@ zwiekszenie_mantysy:
 	movl	(%edi), %ebx
 	addl	$1, %eax
 	adcl	$0, %ebx
+    jc  overflow
 	movl	%ebx, (%edi)
 	movl	%eax, 4(%edi)
 	xorl	%eax, %eax
-    
-    jnc koniec
+    jmp koniec
+overflow:
     #wystapil overflow
     cmpb    $1, wynik_sign
     jz  minus_inf
