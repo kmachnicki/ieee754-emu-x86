@@ -216,13 +216,14 @@ po_ustawieniu:
 	movl	liczba1_mts, %esi
 	movl	liczba2_mts, %edi
 	movl	liczba1_size, %edx
+	movl liczba1_size, %ecx
 	clc
 	
 odjecie_mantysy:
 	decl	%edx
 	movl	(%esi, %edx, 4), %eax
 	movl	(%edi, %edx, 4), %ebx
-	sbbl	%eax, %ebx
+	sbbl	%ebx, %eax
     jnc odejmij_dalej
     movb    $1, czy_normalizowac
     jmp odejmij_kolejny
@@ -231,11 +232,10 @@ odejmij_dalej:
 odejmij_kolejny:
 	pushl	%edi
 	movl	wynik_mts, %edi
-	movl	%ebx, (%edi, %edx, 4)
+	movl	%eax, (%edi, %edx, 4)
 	popl	%edi
 
-	cmpl	$0, %edx				# Czy juz wszystko zostalo odjete
-	jnz	odjecie_mantysy
+	loop odjecie_mantysy
     
     cmpb    $0, czy_normalizowac    # W wypadku gdy nie trzeba znormalizowac
     jz  koniec
