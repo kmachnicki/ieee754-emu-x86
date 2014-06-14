@@ -141,7 +141,13 @@ pierwsza:						# W wypadku gdy pierwsza liczba jest wieksza lub rowna
 	movl	(%edi), %ecx
 	movl	(%esi), %edx
 	sbbl	%edx, %ecx			# Wynik sumy w ecx:eax
+    
+    cmpl    $0, %edx
+    jnz nie_rowne_zero_ecxeax
+    cmpl    $0, %ecx
+    jz  po_ustawieniu
 	
+nie_rowne_zero_ecxeax:
 	movl	liczba1_mts, %edi
 	movl	%eax, iterator_1
 	movl	%ecx, iterator_2

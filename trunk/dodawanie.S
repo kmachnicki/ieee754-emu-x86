@@ -137,6 +137,13 @@ pierwsza:						# W wypadku gdy pierwsza liczba jest mniejsza lub rowna
 	movl	(%edi), %ecx
 	movl	(%esi), %edx
 	sbbl	%edx, %ecx			# Wynik roznicy w ecx:eax
+    
+    cmpl    $0, %edx
+    jnz nie_rowne_zero_ecxeax
+    cmpl    $0, %ecx
+    jz  po_ustawieniu
+	
+nie_rowne_zero_ecxeax:
 	
 	movl	liczba1_mts, %edi
 	movl	%eax, iterator_1
