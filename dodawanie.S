@@ -8,6 +8,8 @@ jakie_zaokraglenie:	.long	0
 iterator_1:			.long	0
 iterator_2:			.long	0
 
+czy_normalizowac:   .byte   0
+
 .text
 .globl	dodaj
 .type	dodaj, @function
@@ -192,6 +194,12 @@ dodanie_mantysy:
 	movl	(%esi, %edx, 4), %eax
 	movl	(%edi, %edx, 4), %ebx
 	adcl	%eax, %ebx
+    jnc dodaj_dalej
+    movb    $1, czy_normalizowac
+    jmp dodaj_kolejny
+dodaj_dalej:
+    movb    $0, czy_normalizowac
+dodaj_kolejny:
 	pushl	%edi
 	movl	wynik_mts, %edi
 	movl	%ebx, (%edi, %edx, 4)
@@ -200,9 +208,10 @@ dodanie_mantysy:
 	cmpl	$0, %edx				# Czy juz wszystko zostalo dodane
 	jnz	dodanie_mantysy
 
-    jnc koniec                      # W wypadku gdy nie trzeba znormalizowac
+    cmpb    $0, czy_normalizowac    # W wypadku gdy nie trzeba znormalizowac
+    jz  koniec
     call    normalizacja
-	
+	jmp koniec
 zle_znaki:
 	call	odejmij					# Wywolanie odejmowania
 

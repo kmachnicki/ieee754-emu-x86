@@ -8,6 +8,8 @@ jakie_zaokraglenie:	.long	0
 iterator_1:			.long	0
 iterator_2:			.long	0
 
+czy_normalizowac:   .byte   0
+
 .text
 .globl	odejmij
 .type	odejmij, @function
@@ -192,6 +194,12 @@ odjecie_mantysy:
 	movl	(%esi, %edx, 4), %eax
 	movl	(%edi, %edx, 4), %ebx
 	sbbl	%eax, %ebx
+    jnc odejmij_dalej
+    movb    $1, czy_normalizowac
+    jmp odejmij_kolejny
+odejmij_dalej:
+    movb    $0, czy_normalizowac
+odejmij_kolejny:
 	pushl	%edi
 	movl	wynik_mts, %edi
 	movl	%ebx, (%edi, %edx, 4)
@@ -200,11 +208,10 @@ odjecie_mantysy:
 	cmpl	$0, %edx				# Czy juz wszystko zostalo odjete
 	jnz	odjecie_mantysy
     
-    jnc koniec						# W wypadku gdy nie trzeba znormalizowac
+    cmpb    $0, czy_normalizowac    # W wypadku gdy nie trzeba znormalizowac
+    jz  koniec
     call    normalizacja
-    
-    movl	jakie_zaokraglenie, %eax
-	call	zaokraglenie
+	jmp koniec
 	
 zle_znaki:
 	call	dodaj					# Wywolanie dodawania
