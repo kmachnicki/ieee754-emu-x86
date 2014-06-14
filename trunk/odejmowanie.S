@@ -9,6 +9,7 @@ iterator_1:			.long	0
 iterator_2:			.long	0
 
 czy_normalizowac:   .byte   0
+czy_exp_rowny:		.byte	0
 
 .text
 .globl	odejmij
@@ -157,6 +158,8 @@ pierwsza:						# W wypadku gdy pierwsza liczba jest miejsza lub rowna
     cmpl    $0, %ecx
     jnz  nie_rowne_zero_ecxeax
     
+    movb	$1, czy_exp_rowny
+    
     #czy liczby takie same
     movl    liczba1_mts, %esi
     movl    liczba2_mts, %edi
@@ -247,7 +250,21 @@ odejmij_kolejny:
 	popl	%edi
 
 	loop odjecie_mantysy
-    
+	
+	cmpb	$1, czy_exp_rowny
+	jnz	normal
+	#trzeba przesunac jeszcze raz
+	movl	wynik_mts, %edi
+    movl    wynik_size, %ecx
+	movl    %ecx, %ebx
+	clc
+	
+shift_wynik2:
+    decl    %ebx
+	rcll	$1, (%edi, %ebx, 4)
+	loop    shift_wynik2
+	
+normal:    
     #cmpb    $0, czy_normalizowac    # W wypadku gdy nie trzeba znormalizowac
     #jz  koniec
     call    normalizacjaOdejmowanie             #normalizuj
