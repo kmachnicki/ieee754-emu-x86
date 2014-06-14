@@ -119,8 +119,8 @@ powtorz_2:
 koniec_shift_2:
 
 pierwsza:						# W wypadku gdy pierwsza liczba jest wieksza lub rowna
-	movl	liczba2_sign, %eax
-	movl	%eax, wynik_sign	# Przepisujemy znak od wiekszej
+	movb	liczba2_sign, %al
+	movb	%al, wynik_sign	# Przepisujemy znak od wiekszej
     
     # Przepisanie eksponenty
     pushl   %edi
