@@ -235,14 +235,14 @@ koniec:
 	movl	wynik_size, %ecx
 	xorl	%edx, %edx
 	
-czy_zero:
-	movl	(%edi, %edx, 4), %eax
-	incl	%edx
-	cmpl	$0, %eax
-	jnz	nie_zero
-	loop	czy_zero
+#czy_zero:
+#	movl	(%edi, %edx, 4), %eax
+#	incl	%edx
+#	cmpl	$0, %eax
+#	jnz	nie_zero
+#	loop	czy_zero
 	
-	call ZeroNumb
+#	call ZeroNumb
 	
 nie_zero:
 	leave
