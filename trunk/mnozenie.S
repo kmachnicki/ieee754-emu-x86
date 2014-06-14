@@ -25,39 +25,92 @@ mnoz:
 	movb	liczba1_sign, %al
 	movb	liczba2_sign, %ah
 	cmpb	%al, %ah			# Jak znaki sa rozne to wynik bedzie ujemny
-	jz	po_zamianie_znakow
+	jz	bedzie_dodatni
 	movb	$1, wynik_sign
-
+    jmp po_zamianie_znakow
+bedzie_dodatni:
+	movb	$0, wynik_sign
 po_zamianie_znakow:
-	movb	%al, wynik_sign
-
 	movl	$liczba1_exp, %esi
 	movl	$liczba2_exp, %edi
+    
+    #sprawdzenie czy jedna z liczb nie jest NaNem
+    cmpl    $0xFFFFFFFF, 4(%esi)
+    jnz pierwsza_nie_NaN
+    cmpl    $0xFFFFFFFF, (%esi) 
+    jz  wystapil_NaN
+pierwsza_nie_NaN:
+    cmpl    $0xFFFFFFFF, 4(%edi) 
+    jnz nie_ma_NaN
+    cmpl    $0xFFFFFFFF, (%edi) 
+    jnz nie_ma_NaN
+wystapil_NaN:
+    call    NaN
+    jmp nie_zero
+nie_ma_NaN:
+    
+    movl	(%edi), %eax
+	movl	4(%edi), %edx
+	cmpl	4(%esi), %edx
+	jl	druga
+	cmpl	4(%esi), %edx
+	jg	pierwsza
+	cmpl	(%esi), %eax
+	jnb	pierwsza
+    
+druga:
 
-	movl	4(%esi), %eax		# Mlodsza czesc
-	subl	$BIAS_L, %eax
-	movl	%eax, %ebx
-	movl	(%esi), %eax
-	sbbl	$BIAS_H, %eax
-	movl	%eax, %ecx			# Pierwsza liczba ecx:ebx
+    movl    4(%esi), %eax
+    movl	4(%edi), %ebx
+	subl	%ebx, %eax
 
-	movl	4(%edi), %eax
-	subl	$BIAS_L, %eax
+	movl	(%esi), %ecx
 	movl	(%edi), %edx
-	sbbl	$BIAS_H, %edx		# Druga liczba edx:eax
+	sbbl	%edx, %ecx			# Wynik roznicy w ecx:eax
+    
+    #trzeba dodac roznice (w tym wypadku do wiekszej czyli do pierwszej)
+    addl    %eax, 4(%esi)
+    adcl    %ecx, (%esi)
+    jno nie_ma_overflow1        #czy w wyniku dodawania wystapil overflow
+    call    inf_plus
+    jmp nie_zero                #konczymy
+nie_ma_overflow1:
+    #teraz przepisanie sumy
+    pushl   %edi
+    movl    $wynik_exp, %edi
+    movl    4(%esi), %eax
+    movl    %eax, 4(%edi)
+    movl    (%esi), %eax
+    movl    %eax, (%edi)
+    popl    %edi
+    
+    jmp sprowadzone
 
-	# Dodanie wykladnikow
-	addl	%ebx, %eax
-	adcl	%ecx, %edx			# Wynik w edx:eax
+pierwsza:
 
-	# Dodanie obciazenia BIAS
-	addl	$BIAS_L, %eax
-	adcl	$BIAS_H, %edx
-	
-	# Wpisanie wartosci do pamieci
-	movl	$wynik_exp, %edi	
-	movl	%eax, 4(%edi)
-	movl	%edx, (%edi)		
+    movl	4(%edi), %eax
+	movl	4(%esi), %ebx
+	subl	%ebx, %eax
+
+	movl	(%edi), %ecx
+	movl	(%esi), %edx
+	sbbl	%edx, %ecx			# Wynik roznicy w ecx:eax
+    
+    #trzeba dodac roznice (w tym wypadku do wiekszej czyli do drugiej)
+    addl    %eax, 4(%edi)
+    adcl    %ecx, (%edi)
+    jno nie_ma_overflow2        #czy w wyniku dodawania wystapil overflow
+    call    inf_plus
+    jmp nie_zero                #konczymy
+nie_ma_overflow2:
+    #teraz przepisanie sumy
+    pushl   %esi
+    movl    $wynik_exp, %esi
+    movl    4(%edi), %eax
+    movl    %eax, 4(%esi)
+    movl    (%edi), %eax
+    movl    %eax, (%esi)
+    popl    %esi
 
 sprowadzone:
 	# Alokacja pamieci na wynik
