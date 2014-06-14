@@ -43,6 +43,16 @@ wystapil_NaN:
     jmp nie_zero
 nie_ma_NaN:
 
+    # Alokacja pamieci na wynik
+	movl	liczba1_size, %eax
+	movl	%eax, wynik_size
+    movl    $4, %ebx
+	mull	%ebx
+	pushl	%eax
+	call	malloc
+	addl	$4, %esp
+	movl	%eax, wynik_mts
+
 	movl	(%edi), %eax
 	movl	4(%edi), %edx
 	cmpl	4(%esi), %edx
@@ -145,7 +155,23 @@ pierwsza:						# W wypadku gdy pierwsza liczba jest wieksza lub rowna
     cmpl    $0, %eax
     jnz nie_rowne_zero_ecxeax
     cmpl    $0, %ecx
-    jz  po_ustawieniu
+    jnz  nie_rowne_zero_ecxeax
+    
+    #czy liczby takie same
+    movl    liczba1_mts, %esi
+    movl    liczba2_mts, %edi
+    movl    liczba1_size, %ecx
+    xorl    %edx, %edx
+czy_zero1:
+	movl	(%edi, %edx, 4), %eax
+    movl    (%esi, %edx, 4), %ebx
+    cmpl    %eax, %ebx
+    jnz po_ustawieniu               #mantysy nie rowne
+	incl	%edx
+	loop	czy_zero1
+	
+	call ZeroNumb
+	jmp nie_zero
 	
 nie_rowne_zero_ecxeax:
 	movl	liczba1_mts, %edi
@@ -184,14 +210,7 @@ powtorz_1:
 koniec_shift_1:
 	
 po_ustawieniu:
-	# Alokacja pamieci na wynik
-	movl	liczba1_size, %eax
-	movl	%eax, wynik_size
-	imull	$4, %eax
-	pushl	%eax
-	call	malloc
-	addl	$4, %esp
-	movl	%eax, wynik_mts
+	
 
 	# Liczby sprowadzone do wspolnej potegi (teraz odejmowanie)
 	movl	liczba1_mts, %esi

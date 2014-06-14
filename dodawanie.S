@@ -43,6 +43,16 @@ wystapil_NaN:
     jmp nie_zero
 nie_ma_NaN:
 
+    # Alokacja pamieci na wynik
+	movl	liczba1_size, %eax
+	movl	%eax, wynik_size
+    movl    $4, %ebx
+	mull	%ebx
+	pushl	%eax
+	call	malloc
+	addl	$4, %esp
+	movl	%eax, wynik_mts
+
 	movl	(%edi), %eax
 	movl	4(%edi), %edx
 	cmpl	4(%esi), %edx
@@ -141,8 +151,20 @@ pierwsza:						# W wypadku gdy pierwsza liczba jest mniejsza lub rowna
     cmpl    $0, %eax
     jnz nie_rowne_zero_ecxeax
     cmpl    $0, %ecx
-    jz  po_ustawieniu
-	
+    jnz nie_rowne_zero_ecxeax
+    
+    #dodajemy EXP+1
+    pushl   %edi
+    movl	$wynik_exp, %edi
+	movl	4(%edi), %eax
+	movl	(%edi), %ebx
+	addl	$1, %eax
+	adcl	$0, %ebx
+	movl	%ebx, (%edi)
+	movl	%eax, 4(%edi)
+    popl    %edi
+    jmp po_ustawieniu
+    
 nie_rowne_zero_ecxeax:
 	
 	movl	liczba1_mts, %edi
@@ -181,14 +203,7 @@ powtorz_1:
 koniec_shift_1:
 
 po_ustawieniu:
-	# Alokacja pamieci na wynik
-	movl	liczba1_size, %eax
-	movl	%eax, wynik_size
-	imull	$4, %eax
-	pushl	%eax
-	call	malloc
-	addl	$4, %esp
-	movl	%eax, wynik_mts
+	
 
 	# Liczby sprowadzone do wspolnej potegi (teraz dodawanie)
 	movl	liczba1_mts, %esi
