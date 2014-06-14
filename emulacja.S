@@ -1,9 +1,11 @@
-# Modul glowny
+####################
+### Modul glowny ###
+####################
 
 .data
 
 .globl	bit_specjalny
-bit_specjalny:	.byte	0	#potrzebne do informacji o zaokragleniu
+bit_specjalny:	.byte	0	# Bit specjalny potrzebny do zaokraglenia
 
 rodzaj_zaokraglenia:	.long	0
 
@@ -14,8 +16,8 @@ rodzaj_zaokraglenia:	.long	0
 
 liczba1_sign:	.byte	0
 liczba1_exp:	.quad	0
-liczba1_mts:	.long	0	#to przechowuje adres to tablicy gdzie znajudje sie mantyssa
-liczba1_size:	.long	0	#rozmiar tablicy (musi byc wyrownany do 4 bajtow)
+liczba1_mts:	.long	0	# Przechowuje adres to tablicy gdzie znajudje sie mantysa pierwszej liczby
+liczba1_size:	.long	0	# Rozmiar tablicy pierwszej liczby (musi byc wyrownany do 4 bajtow)
 
 .globl	liczba2_sign
 .globl	liczba2_exp
@@ -23,8 +25,8 @@ liczba1_size:	.long	0	#rozmiar tablicy (musi byc wyrownany do 4 bajtow)
 .globl	liczba2_size
 liczba2_sign:	.byte	0
 liczba2_exp:	.quad	0
-liczba2_mts:	.long	0	#to przechowuje adres to tablicy gdzie znajudje sie mantyssa
-liczba2_size:	.long	0	#rozmiar tablicy (musi byc wyrownany do 4 bajtow)
+liczba2_mts:	.long	0	# Przechowuje adres to tablicy gdzie znajudje sie mantysa drugiej liczby
+liczba2_size:	.long	0	# Rozmiar tablicy drugiej liczby (musi byc wyrownany do 4 bajtow)
 
 .globl	wynik_sign
 .globl	wynik_exp
@@ -32,23 +34,23 @@ liczba2_size:	.long	0	#rozmiar tablicy (musi byc wyrownany do 4 bajtow)
 .globl	wynik_size
 wynik_sign:	.byte	0
 wynik_exp:	.quad	0
-wynik_mts:	.long	0	#to przechowuje adres to tablicy gdzie znajudje sie mantyssa
-wynik_size:	.long	0	#rozmiar tablicy (musi byc wyrownany do 4 bajtow)
+wynik_mts:	.long	0	# Przechowuje adres to tablicy gdzie znajudje sie mantysa wyniku
+wynik_size:	.long	0	# Rozmiar tablicy wyniku (musi byc wyrownany do 4 bajtow)
 
 menu:	.ascii	"Wybierz operacje z menu: \n1. Dodawanie\n2. Odejmowanie\n3. Mnozenie\n\0"
 zaok:	.ascii	"Wybierz sposob zaokraglania: \n0 - przez obciecie\n1 - do \"gory\"\n2 - do najblizszej parzystej\n\0"
 wybor:	.long	0
 wybor_fmt:	.ascii	"%d\0"
 
-wynik_file:	.long	0	#wskaznik na strukture FILE biblioteki C do obslugi plikow
+wynik_file:	.long	0	# Wskaznik na strukture FILE biblioteki C do obslugi plikow
 wynik_tryb:	.ascii	"w+\0"
-wynik_name:	.ascii	"wynik.txt\0"	#nazwa pliku wynikowego
+wynik_name:	.ascii	"wynik.txt\0"	# Nazwa pliku wynikowego
 
 zrodlo_file:	.long	0
 zrodlo_tryb:	.ascii	"r\0"
-zrodlo_name:	.ascii	"liczby.txt\0"
+zrodlo_name:	.ascii	"liczby.txt\0" # Nazwa pliku z liczbami
 
-jaki_rozmiar:	.long	0		#pierwsza zmienna w pliku oznacza jaki rozmiar zmiennych bedzie w pliku
+jaki_rozmiar:	.long	0		# Pierwsza zmienna w pliku oznacza rozmiar zmiennych
 
 rozmiar_fmt:	.ascii	"%u\0"
 dane_fmt:	.ascii	"%u %016llx\0"
@@ -58,19 +60,17 @@ brak_plk:	.ascii	"Nie znaleziono pliku liczby.txt\0"
 brak_pam:	.ascii	"Nie mozna zaalokowac potrzebnej pamieci\0"
 blad_zapis:	.ascii	"Nie mozna utoworzyc pliku\0"
 
-# Zaczynamy kod
 .text
-.globl	main	#bedzie kompilowane pod gcc dla wygody
+.globl	main	# Kompilacja za pomoca gcc
 main:
-
-	#wczytywanie danych z pliku
+	# Wczytywanie danych z pliku
 	pushl	$zrodlo_tryb
 	pushl	$zrodlo_name
 	call	fopen
 	addl	$4*2, %esp
-	movl	%eax, zrodlo_file	#wskaznik na FILE teraz w zrodlo_file
+	movl	%eax, zrodlo_file	# Wskaznik na FILE znajduje sie teraz w zrodlo_file
 	cmpl	$0, %eax
-	jz	brak_pliku					#jak nie ma pliku to nie konczymy
+	jz	brak_pliku					# W wypadku gdy nie ma pliku
 	
 	#pobierz wielosc liczb
 	pushl	$jaki_rozmiar
@@ -82,15 +82,15 @@ main:
 	movl	%eax, liczba1_size
 	movl	%eax, liczba2_size
 	
-	#alokacja rozmiaru mantyss dla obydwu liczb
-	movl	$4, %ebx			#long ma rozmiar 4 bajty, czyli do zaalokowania 4 * rozmiar mantysy
+	# Alokacja rozmiaru mantys dla obu liczb
+	movl	$4, %ebx			# Rozmiar long to 4 bajty, czyli do zaalokowania 4 * rozmiar mantysy
 	mull	%ebx
 	pushl	%eax
 	call	malloc
 	addl	$4, %esp
 	cmpl	$0, %eax
-	jz	brak_pamieci					#nie przydzielono pamieci to nie ma co robic
-	movl	%eax, liczba1_mts	#przypisanie pierwszego wskaznika
+	jz	brak_pamieci			# Gdy nie przydzielono pamieci
+	movl	%eax, liczba1_mts	# Przypisanie pierwszego wskaznika
 	
 	movl	liczba2_size, %eax
 	movl	$4, %ebx
@@ -99,10 +99,10 @@ main:
 	call	malloc
 	addl	$4, %esp
 	cmpl	$0, %eax
-	jz	brak_pamieci					#nie przydzielono pamieci to nie ma co robic
-	movl	%eax, liczba2_mts	#przypisanie drugiego wskaznika
+	jz	brak_pamieci			# Gdy nie przydzielono pamieci
+	movl	%eax, liczba2_mts	# Przypisanie drugiego wskaznika
 	
-	#wczytaj pierwsza liczbe
+	# Wczytywanie pierwszej liczby
 	pushl	$liczba1_exp
 	pushl	$liczba1_sign
 	pushl	$dane_fmt
@@ -110,20 +110,19 @@ main:
 	call	fscanf
 	addl	$4*4, %esp
 	
-	#zamiana exp
+	# Zamiana eksponent
 	movl	$liczba1_exp, %edi
 	movl	(%edi), %eax
 	movl	4(%edi), %ebx
 	movl	%ebx, (%edi)
 	movl	%eax, 4(%edi)
 	
-	#wczytaj pierwsza mantyse
+	# Wczytywanie pierwszej mantysy
 	movl	liczba1_mts, %edi
 	xorl	%ecx, %ecx
-wczytaj1_mts:
-	pushl	%ecx				#zachowaj licznik
 	
-	#movl	liczba1_mts( ,%ecx, 4), %esi	#powinno zwrocic adres a nie liczbe
+wczytaj1_mts:
+	pushl	%ecx				# Zachowanie licznika
 	
 	pushl	%edi
 	pushl	$dane_mnt
@@ -137,7 +136,7 @@ wczytaj1_mts:
 	cmpl	liczba1_size, %ecx
 	jnz	wczytaj1_mts
 	
-	#wczytaj druga liczbe
+	# Wczytanie drugiej liczby
 	pushl	$liczba2_exp
 	pushl	$liczba2_sign
 	pushl	$dane_fmt
@@ -145,20 +144,20 @@ wczytaj1_mts:
 	call	fscanf
 	addl	$4*4, %esp
 	
-	#zamiana exp
+	# Zamiana eksponenty
 	movl	$liczba2_exp, %edi
 	movl	(%edi), %eax
 	movl	4(%edi), %ebx
 	movl	%ebx, (%edi)
 	movl	%eax, 4(%edi)
 	
-	#wczytaj druga mantyse
+	# Wczytywanie drugiej mantysy
 	movl	liczba2_mts, %edi
 	xorl	%ecx, %ecx
-wczytaj2_mts:
-	pushl	%ecx				#zachowaj licznik
 	
-	#movl	liczba2_mts( ,%ecx, 4), %esi	#powinno zwrocic adres a nie liczbe
+wczytaj2_mts:
+	pushl	%ecx				# Zachowanie licznika
+	
 	pushl	%edi
 	pushl	$dane_mnt
 	pushl	zrodlo_file
@@ -171,12 +170,12 @@ wczytaj2_mts:
 	cmpl	liczba2_size, %ecx
 	jnz	wczytaj2_mts
 	
-	#liczby wczytane, trzeba zwolnic uchwyt FILE
+	# Liczby wczytane, trzeba zwolnic uchwyt FILE
 	pushl	zrodlo_file
 	call	fclose
 	addl	$4, %esp
 	
-	#rodzaj zaokraglania
+	# Rodzaj zaokraglenia
 	pushl	$zaok
 	call	printf
 	addl	$4, %esp
@@ -186,7 +185,7 @@ wczytaj2_mts:
 	call	scanf
 	addl	$4*2, %esp
 
-	#menu
+	# Obsluga menu
 	pushl	$menu
 	call	printf
 	addl	$4, %esp
@@ -203,7 +202,7 @@ wczytaj2_mts:
 	cmpl	$3, wybor
 	jnz	po_operacjach
 
-	movl	rodzaj_zaokraglenia, %eax			#parametr funkcji
+	movl	rodzaj_zaokraglenia, %eax			# Parametry funkcji
 
 wybor_mnozenie:
 	call	mnoz
@@ -217,7 +216,7 @@ wybor_dodawanie:
 	call	dodaj	
 
 po_operacjach:	
-	#zamiana przed zapisem
+	# Zamiana przed zapisem
 	movl	$wynik_exp, %edi
 	movl	(%edi), %eax
 	movl	4(%edi), %ebx
@@ -248,6 +247,7 @@ zapisz_do_pliku:
 	
 	movl	wynik_mts, %esi
 	xorl	%ecx, %ecx
+	
 petla_wpisujaca:
 	movl	(%esi, %ecx, 4), %eax
 	
@@ -264,13 +264,13 @@ petla_wpisujaca:
 	cmpl	wynik_size, %ecx
 	jnz	petla_wpisujaca
 	
-	#zamknij plik
+	# Zamkniecie pliku
 	pushl	wynik_file
 	call	fclose
 	addl	$4, %esp
 
 
-	#zwalnianie pamieci
+	# Zwolnienie pamieci
 	pushl	liczba1_mts
 	call	free
 	addl	$4, %esp
@@ -281,7 +281,8 @@ petla_wpisujaca:
 
 	cmpl	$0, wynik_mts
 	jz	koniec
-	#jak zaalokowano to zwolnij pamiec tez tutaj
+	
+	# Jak zaalokowano pamiec to nastepuje zwolnienie
 	pushl	wynik_mts
 	call	free
 	addl	$4, %esp
@@ -289,10 +290,9 @@ petla_wpisujaca:
 koniec:
 	pushl	$0
 	call	exit
-	
 	ret	
 	
-#oblsuga bledow	
+# Obsluga bledow
 brak_pliku:
 	pushl	$brak_plk
 	call	puts
@@ -310,5 +310,3 @@ blad_zapisu:
 	call	puts
 	addl	$4, %esp
 	jmp	koniec
-
-

@@ -1,4 +1,6 @@
-# Modul wykonujacy normalizacje wyniku
+########################################
+# Modul wykonujacy normalizacje wyniku #
+########################################
 
 .text
 .globl  normalizacja
@@ -7,11 +9,12 @@ normalizacja:
     pushl   %ebp
     movl    %esp, %ebp
     
-    #trzeba dodac te jednyke
+    # Dodanie ukrytej jedynki
 	movl	wynik_mts, %edi
     movl    wynik_size, %ecx
 	xorl	%ebx, %ebx
-	stc	
+	stc
+	
 shift_wynik:
 	rcrl	$1, (%edi, %ebx, 4)
 	incl	%ebx
@@ -28,12 +31,14 @@ zwiekszenie_mantysy:
 	movl	%eax, 4(%edi)
 	xorl	%eax, %eax
     jmp koniec
+	
 overflow:
-    #wystapil overflow
+    # W przypadku gdy wystapi overflow
     cmpb    $1, wynik_sign
     jz  minus_inf
     call    inf_plus
     jmp koniec
+	
 minus_inf:
     call    inf_minus
 	
