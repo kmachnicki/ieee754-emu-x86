@@ -9,7 +9,7 @@ iterator_1:			.long	0
 iterator_2:			.long	0
 
 czy_normalizowac:   .byte   0
-takie_same:			.byte	0
+czy_druga:			.byte	0
 
 .text
 .globl	dodaj
@@ -64,12 +64,12 @@ nie_ma_NaN:
 	jnb	pierwsza
 	
 druga:							# W wypadku gdy druga liczba jest mniejsza
-	movl	4(%esi), %eax
+	#movl	4(%esi), %eax
 
-	pushl	%edi
-	movl	$wynik_exp, %edi
-	movl	%eax, 4(%edi)		# Przepisanie wiekszej eksponenty
-	popl	%edi
+	#pushl	%edi
+	#movl	$wynik_exp, %edi
+	#movl	%eax, 4(%edi)		# Przepisanie wiekszej eksponenty
+	#popl	%edi
     
     # Przepisanie eksponenty
     pushl   %edi
@@ -129,6 +129,9 @@ koniec_shift_2:
     jmp po_ustawieniu
 
 pierwsza:						# W wypadku gdy pierwsza liczba jest mniejsza lub rowna
+
+	movb	$1, czy_druga		# druga liczba jest wieksza
+	
     # Przepisanie eksponenty
     pushl   %edi
     pushl   %esi
@@ -155,7 +158,7 @@ pierwsza:						# W wypadku gdy pierwsza liczba jest mniejsza lub rowna
     jnz nie_rowne_zero_ecxeax
     
     #rowne 0
-    movb    $1, takie_same
+    movb    $0, czy_druga		# jednak takie same
     
     #dodajemy EXP+1
     #pushl   %edi
@@ -236,8 +239,8 @@ dodaj_kolejny:
 
     #cmpb    $0, czy_normalizowac    # W wypadku gdy nie trzeba znormalizowac
     #jz  koniec
-#	cmpb	$1, takie_same
-#	jnz	normalizowac
+	cmpb	$0, czy_druga
+	jnz	koniec
     
     # Jedno przesuniecie
 #	movl	wynik_mts, %edi
