@@ -236,19 +236,19 @@ dodaj_kolejny:
 
     #cmpb    $0, czy_normalizowac    # W wypadku gdy nie trzeba znormalizowac
     #jz  koniec
-    cmpb	$1, takie_same
-    jnz	normalizowac
+#	cmpb	$1, takie_same
+#	jnz	normalizowac
     
     # Jedno przesuniecie
-	movl	wynik_mts, %edi
-    movl    wynik_size, %ecx
-	xorl	%ebx, %ebx
-	clc
+#	movl	wynik_mts, %edi
+#	movl    wynik_size, %ecx
+#	xorl	%ebx, %ebx
+#	clc
 	
-przesuniecie_1:
-	rcrl	$1, (%edi, %ebx, 4)
-	incl	%ebx
-	loop    przesuniecie_1
+#przesuniecie_1:
+#	rcrl	$1, (%edi, %ebx, 4)
+#	incl	%ebx
+#	loop    przesuniecie_1
     
 normalizowac:    
     call    normalizacja
