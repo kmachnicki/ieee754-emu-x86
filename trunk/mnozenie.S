@@ -116,16 +116,18 @@ sprowadzone:
 	#trzeba ujawinić jedynkę
 	movl	liczba1_mts, %esi
 	movl	liczba2_mts, %edi
+	movl	liczba1_size, %ecx
 	xorl	%ebx, %ebx
 	stc
 odkryj_jedynke1:
-	rcrl	$1, (%esi, %ebx, 4)
+	rcrl	$1, (%esi, %ebx, 4)			#przesuwa pierwsza liczbe
 	incl	%ebx
 	loop    odkryj_jedynke1
 	
+	movl	liczba1_size, %ecx
 	xorl	%ebx, %ebx
 	stc
-odkryj_jedynke2:
+odkryj_jedynke2:						#przesuwa druga liczbe
 	rcrl	$1, (%edi, %ebx, 4)
 	incl	%ebx
 	loop    odkryj_jedynke2
