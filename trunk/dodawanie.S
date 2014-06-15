@@ -9,6 +9,7 @@ iterator_1:			.long	0
 iterator_2:			.long	0
 
 czy_normalizowac:   .byte   0
+takie_same:			.byte	0
 
 .text
 .globl	dodaj
@@ -153,16 +154,19 @@ pierwsza:						# W wypadku gdy pierwsza liczba jest mniejsza lub rowna
     cmpl    $0, %ecx
     jnz nie_rowne_zero_ecxeax
     
+    #rowne 0
+    movb    $1, takie_same
+    
     #dodajemy EXP+1
-    pushl   %edi
-    movl	$wynik_exp, %edi
-	movl	4(%edi), %eax
-	movl	(%edi), %ebx
-	addl	$1, %eax
-	adcl	$0, %ebx
-	movl	%ebx, (%edi)
-	movl	%eax, 4(%edi)
-    popl    %edi
+    #pushl   %edi
+    #movl	$wynik_exp, %edi
+	#movl	4(%edi), %eax
+	#movl	(%edi), %ebx
+	#addl	$1, %eax
+	#adcl	$0, %ebx
+	#movl	%ebx, (%edi)
+	#movl	%eax, 4(%edi)
+    #popl    %edi
     jmp po_ustawieniu
     
 nie_rowne_zero_ecxeax:
@@ -232,6 +236,21 @@ dodaj_kolejny:
 
     #cmpb    $0, czy_normalizowac    # W wypadku gdy nie trzeba znormalizowac
     #jz  koniec
+    cmpb	$1, takie_same
+    jnz	normalizowac
+    
+    # Jedno przesuniecie
+	movl	wynik_mts, %edi
+    movl    wynik_size, %ecx
+	xorl	%ebx, %ebx
+	clc
+	
+przesuniecie_1:
+	rcrl	$1, (%edi, %ebx, 4)
+	incl	%ebx
+	loop    przesuniecie_1
+    
+normalizowac:    
     call    normalizacja
 	jmp koniec
 zle_znaki:
