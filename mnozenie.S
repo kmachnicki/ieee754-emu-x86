@@ -54,12 +54,12 @@ wystapil_NaN:
 nie_ma_NaN:
     
     #sprawdzenie czy obie EXP dodatnie
-    movl	(%edi), %eax
-    test	$MASKA_TEST, %eax
-    jnz	ujemna
     movl	(%esi), %eax
     test	$MASKA_TEST, %eax
-    jnz	ujemna
+    jnz	ujemna1
+    movl	(%edi), %eax
+    test	$MASKA_TEST, %eax
+    jnz	ujemna2
     
 dodatnia:
 	#odjeci BIAS od pierwszej EXP
@@ -94,8 +94,111 @@ overflow:
 	call	inf_plus
 	jmp	nie_zero
 
-ujemna:
-	#chwilowo not implemented
+ujemna1:
+	#trzeba sprawdzić czy druga tez nie ujemna
+	movl	(%edi), %eax
+    test	$MASKA_TEST, %eax
+    jnz	ujemne
+    
+    #pierwsza ujemna, druga dodatnia
+    #od BIAS odjac EXP1
+    movl	$BIAS_L, %eax
+    movl	$BIAS_H, %ebx
+    subl	4(%esi), %eax
+    sbbl	(%esi), %ebx				#wynik ebx:eax
+    #od EXP2 odjac BIAS
+    subl	$BIAS_L, 4(%edi)
+    sbbl	$BIAS_H, (%edi)				#wynik w EXP2
+    
+    #odjac w NB od drugiej pierwsza (EXP - ebx:eax)
+    subl	%eax, 4(%edi)
+    sbbl	%ebx, (%edi)				#wynik w EXP2
+    
+    #do wyniku dodac BIAS
+    addl	$BIAS_L, 4(%edi)
+    adcl	$BIAS_H, (%edi)
+    jc	overflow
+    
+    #wynik przeniesc do wynik_exp
+    pushl	%esi
+    movl	$wynik_exp, %esi
+    movl	4(%edi), %eax
+    movl	(%edi), %ebx
+    movl	%eax, 4(%esi)
+    movl	%ebx, (%esi)
+    popl	%esi
+    
+	jmp	sprowadzone
+	
+ujemna2:
+	#pierwsza dodatnia, druga ujemna
+	#od EXP1 odjac BIAS
+    subl	$BIAS_L, 4(%esi)
+    sbbl	$BIAS_H, (%esi)				#wynik w EXP1
+    
+    #od BIAS odjac EXP2
+    movl	$BIAS_L, %eax
+    movl	$BIAS_H, %ebx
+    subl	4(%edi), %eax
+    sbbl	(%edi), %ebx				#wynik ebx:eax
+    
+    #odjac w NB od pierwszej druga (EXP1 - ebx:eax)
+    subl	%eax, 4(%esi)
+    sbbl	%ebx, (%esi)				#wynik w EXP1
+    
+    #do wyniku dodac BIAS
+    addl	$BIAS_L, 4(%esi)
+    adcl	$BIAS_H, (%esi)
+    jc	overflow
+    
+    #wynik przeniesc do wynik_exp
+    pushl	%edi
+    movl	$wynik_exp, %edi
+    movl	4(%esi), %eax
+    movl	(%esi), %ebx
+    movl	%eax, 4(%edi)
+    movl	%ebx, (%edi)
+    popl	%edi
+	jmp	sprowadzone
+	
+ujemne:
+	#obie ujemne
+	
+	#od BIAS odjac EXP1
+    movl	$BIAS_L, %eax
+    movl	$BIAS_H, %ebx
+    subl	4(%esi), %eax
+    sbbl	(%esi), %ebx				#wynik ebx:eax
+    
+    #od BIAS odjac EXP2
+    movl	$BIAS_L, %ecx
+    movl	$BIAS_H, %edx
+    subl	4(%edi), %ecx
+    sbbl	(%edi), %edx				#wynik edx:ecx
+    
+    #dodac obie liczby
+    addl	%ecx, %eax
+    adcl	%edx, %ebx					#wynik ebx:eax
+    
+    #dodac BIAS do wyniku
+	addl	$BIAS_L, %eax
+	adcl	$BIAS_H, %ebx
+	
+	#zanegowac caly wynik
+	notl	%eax
+	notl	%ebx
+	
+	#odjac 1
+	subl	$1, %eax
+	sbbl	$0, %ebx
+	jc	overflow
+	
+	#wynik przeniesc do wynik_exp
+    pushl	%edi
+    movl	$wynik_exp, %edi
+    movl	%eax, 4(%edi)
+    movl	%ebx, (%edi)
+    popl	%edi
 
 sprowadzone:
 	#trzeba ujawinić jedynkę
@@ -215,9 +318,9 @@ zwiekszenie_mantysy:
 nie_ma_ov:	
 	#przesuniecie
 	movl	wynik_mts, %edi
-    movl    wynik_size, %ecx
     movl	$ROZMIAR_PAKIETU, %edx
 wyr_caly_pkt:
+	movl    wynik_size, %ecx
 	movl    %ecx, %ebx
 	clc
 wyrownaj_pakiet:
