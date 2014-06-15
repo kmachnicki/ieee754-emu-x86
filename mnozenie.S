@@ -80,6 +80,10 @@ zeruj:
 	jnz	zeruj
     
     #sprawdzenie czy obie EXP dodatnie
+    
+    movl	$liczba1_exp, %esi
+	movl	$liczba2_exp, %edi
+	
     movl	(%esi), %eax
     test	$MASKA_TEST, %eax
     jz	ujemna1
