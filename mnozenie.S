@@ -287,25 +287,25 @@ petla2_mnoz:
 	#jnc koniec
 	#call    normalizacja
 	
-	#chwilowo tutaj normalizacja
-	movl	wynik_mts, %edi
-    movl    wynik_size, %ecx
-	movl    %ecx, %ebx
-	clc
+#	#chwilowo tutaj normalizacja
+#	movl	wynik_mts, %edi
+#	movl    wynik_size, %ecx
+#	movl    %ecx, %ebx
+#	clc
 	
-shift_wynik2:
-    decl    %ebx
-	rcll	$1, (%edi, %ebx, 4)
-	loop    shift_wynik2
-		
-zwiekszenie_mantysy:
-	movl	$wynik_exp, %edi
-	movl	4(%edi), %eax
-	movl	(%edi), %ebx
-	addl	$1, %eax
-	adcl	$0, %ebx
-	movl	%ebx, (%edi)
-	movl	%eax, 4(%edi)
+#shift_wynik2:
+#	decl    %ebx
+#	rcll	$1, (%edi, %ebx, 4)
+#	loop    shift_wynik2
+#		
+#zwiekszenie_mantysy:
+#	movl	$wynik_exp, %edi
+#	movl	4(%edi), %eax
+#	movl	(%edi), %ebx
+#	addl	$1, %eax
+#	adcl	$0, %ebx
+#	movl	%ebx, (%edi)
+#	movl	%eax, 4(%edi)
 	
 	#sprawdzanie czy overflow + przesuniecie wyniku o jeden pakiet
 	movl	wynik_mts, %esi
