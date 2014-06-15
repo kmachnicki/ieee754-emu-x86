@@ -183,6 +183,7 @@ ujemne:
     #dodac BIAS do wyniku
 	addl	$BIAS_L, %eax
 	adcl	$BIAS_H, %ebx
+	jc	overflow
 	
 	#zanegowac caly wynik
 	notl	%eax
@@ -191,7 +192,6 @@ ujemne:
 	#odjac 1
 	subl	$1, %eax
 	sbbl	$0, %ebx
-	jc	overflow
 	
 	#wynik przeniesc do wynik_exp
     pushl	%edi
