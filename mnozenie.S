@@ -322,14 +322,14 @@ shift_wynik2:
 nie_ma_ov:
 	#przesuniecie
 	movl	wynik_mts, %edi
-	movl	(%edi), %eax
-	test	$MASKA_TEST, %eax			#sprawdza czy jest jeden na poczatku
-	jnz	koniec
     #movl	$ROZMIAR_PAKIETU, %edx
     movl	rozmiar_temp, %edx
 wyr_caly_pkt:
 	movl    wynik_size, %ecx
 	movl    %ecx, %ebx
+	movl	(%edi), %eax
+	test	$MASKA_TEST, %eax			#sprawdza czy jest jeden na poczatku
+	jnz	koniec
 	clc
 wyrownaj_pakiet:
 	decl    %ebx
