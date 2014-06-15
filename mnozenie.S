@@ -2,10 +2,14 @@
 # Modul mnozacy 2 liczby zmiennoprzecinkowe #
 #############################################
 
-BIAS_H = 0x7FFFFDFF
+BIAS_H = 0x7FFFFFFF
 BIAS_L = 0xFFFFFFFF
 
 MASKA_TEST = 0b10000000000000000000000000000000
+
+OVER_TEST = 0b00000000000000000000000000000001
+
+ROZMIAR_PAKIETU = 8
 
 .data
 czy_pierwszy_obieg:	.byte	0
@@ -49,68 +53,49 @@ wystapil_NaN:
     jmp nie_zero
 nie_ma_NaN:
     
+    #sprawdzenie czy obie EXP dodatnie
     movl	(%edi), %eax
-	movl	4(%edi), %edx
-	cmpl	4(%esi), %edx
-	jl	druga
-	cmpl	4(%esi), %edx
-	jg	pierwsza
-	cmpl	(%esi), %eax
-	jnb	pierwsza
+    test	$MASKA_TEST, %eax
+    jnz	ujemna
+    movl	(%esi), %eax
+    test	$MASKA_TEST, %eax
+    jnz	ujemna
     
-druga:
+dodatnia:
+	#odjeci BIAS od pierwszej EXP
+	subl	$BIAS_L, 4(%esi)
+	sbbl	$BIAS_H, (%esi)
+	
+	#odjecie BIAS od drugiej EXP
+	subl	$BIAS_L, 4(%edi)
+	sbbl	$BIAS_H, (%edi)
+	
+	#dodanie exp1 + exp2
+	movl	4(%esi), %eax
+	addl	4(%edi), %eax
+	movl	(%esi), %ebx
+	adcl	(%edi), %ebx
+	
+	#dodanie BIAS od ebx:eax
+	addl	$BIAS_L, %eax
+	adcl	$BIAS_H, %ebx
+	jc	overflow
+	
+	#przeniesienie od wyniku
+	pushl	%edi
+	movl	$wynik_exp, %edi
+	movl	%eax, 4(%edi)
+	movl	%ebx, (%edi)
+	popl	%edi
+	
+	jmp	sprowadzone
+	
+overflow:
+	call	inf_plus
+	jmp	nie_zero
 
-    movl    4(%esi), %eax
-    movl	4(%edi), %ebx
-	subl	%ebx, %eax
-
-	movl	(%esi), %ecx
-	movl	(%edi), %edx
-	sbbl	%edx, %ecx			# Wynik roznicy w ecx:eax
-    
-    #trzeba dodac roznice (w tym wypadku do wiekszej czyli do pierwszej)
-    addl    %eax, 4(%esi)
-    adcl    %ecx, (%esi)
-    jno nie_ma_overflow1        #czy w wyniku dodawania wystapil overflow
-    call    inf_plus
-    jmp nie_zero                #konczymy
-nie_ma_overflow1:
-    #teraz przepisanie sumy
-    pushl   %edi
-    movl    $wynik_exp, %edi
-    movl    4(%esi), %eax
-    movl    %eax, 4(%edi)
-    movl    (%esi), %eax
-    movl    %eax, (%edi)
-    popl    %edi
-    
-    jmp sprowadzone
-
-pierwsza:
-
-    movl	4(%edi), %eax
-	movl	4(%esi), %ebx
-	subl	%ebx, %eax
-
-	movl	(%edi), %ecx
-	movl	(%esi), %edx
-	sbbl	%edx, %ecx			# Wynik roznicy w ecx:eax
-    
-    #trzeba dodac roznice (w tym wypadku do wiekszej czyli do drugiej)
-    addl    %eax, 4(%edi)
-    adcl    %ecx, (%edi)
-    jno nie_ma_overflow2        #czy w wyniku dodawania wystapil overflow
-    call    inf_plus
-    jmp nie_zero                #konczymy
-nie_ma_overflow2:
-    #teraz przepisanie sumy
-    pushl   %esi
-    movl    $wynik_exp, %esi
-    movl    4(%edi), %eax
-    movl    %eax, 4(%esi)
-    movl    (%edi), %eax
-    movl    %eax, (%esi)
-    popl    %esi
+ujemna:
+	#chwilowo not implemented
 
 sprowadzone:
 	#trzeba ujawinić jedynkę
@@ -214,7 +199,34 @@ zwiekszenie_mantysy:
 	adcl	$0, %ebx
 	movl	%ebx, (%edi)
 	movl	%eax, 4(%edi)
-
+	
+	#sprawdzanie czy overflow + przesuniecie wyniku o jeden pakiet
+	movl	wynik_mts, %esi
+	movl	(%esi), %eax
+	test	$OVER_TEST, %eax
+	jz	nie_ma_ov
+	#jest ov to trzeba dodac 1 do exp
+	movl	$wynik_exp, %esi
+	addl	$1, 4(%esi)
+	adcl	$0, (%esi)
+	#czy overflow
+	jc	overflow
+	
+nie_ma_ov:	
+	#przesuniecie
+	movl	wynik_mts, %edi
+    movl    wynik_size, %ecx
+    movl	$ROZMIAR_PAKIETU, %edx
+wyr_caly_pkt:
+	movl    %ecx, %ebx
+	clc
+wyrownaj_pakiet:
+	decl    %ebx
+	rcll	$1, (%edi, %ebx, 4)
+	loop    wyrownaj_pakiet
+	decl	%edx
+	cmpl	$0, %edx
+	jnz	wyr_caly_pkt
 koniec:
 	# Sprawdzenie czy jest co zaokraglac
 	movl	wynik_size, %ecx
