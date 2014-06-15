@@ -82,10 +82,10 @@ zeruj:
     #sprawdzenie czy obie EXP dodatnie
     movl	(%esi), %eax
     test	$MASKA_TEST, %eax
-    jnz	ujemna1
+    jz	ujemna1
     movl	(%edi), %eax
     test	$MASKA_TEST, %eax
-    jnz	ujemna2
+    jz	ujemna2
     
 dodatnia:
 	#odjeci BIAS od pierwszej EXP
@@ -124,7 +124,7 @@ ujemna1:
 	#trzeba sprawdzić czy druga tez nie ujemna
 	movl	(%edi), %eax
     test	$MASKA_TEST, %eax
-    jnz	ujemne
+    jz	ujemne
     
     #pierwsza ujemna, druga dodatnia
     #od BIAS odjac EXP1
