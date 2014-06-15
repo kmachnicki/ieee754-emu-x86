@@ -13,7 +13,8 @@ normalizacja:
 	movl	wynik_mts, %edi
     movl    wynik_size, %ecx
 	xorl	%ebx, %ebx
-	stc
+	#stc
+	clc
 	
 shift_wynik:
 	rcrl	$1, (%edi, %ebx, 4)
