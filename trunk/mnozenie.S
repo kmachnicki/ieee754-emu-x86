@@ -168,8 +168,8 @@ petla_mnoz:
 	clc
 	decl	%ecx
 	movl    liczba1_size, %edx
-	movl    rozmiar_temp, %ebx
-	decl	%ebx
+	movl    %edx, %ebx
+    incl    %ebx
 	subl	ktore_przejscie, %ebx
 	
 petla2_mnoz:
