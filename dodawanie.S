@@ -163,16 +163,6 @@ pierwsza:						# W wypadku gdy pierwsza liczba jest mniejsza lub rowna
 	movl	%ebx, (%edi)
 	movl	%eax, 4(%edi)
     popl    %edi
-    
-    #przesunac raz
-    movl    liczba1_mts, %edi
-    movl    liczba1_size, %ecx
-    clc
-    xorl    %ebx, %ebx
-przesun_raz:
-    rcrl    $1, (%edi, %ebx, 4)
-    incl    %ebx
-    loop    przesun_raz
     jmp po_ustawieniu
     
 nie_rowne_zero_ecxeax:
@@ -182,8 +172,7 @@ nie_rowne_zero_ecxeax:
 	movl	%ecx, iterator_2
 	movl	liczba1_size, %ecx
 	xorl	%ebx, %ebx
-	#stc
-    clc
+	stc
 	
 shift_1:
 	rcrl	$1, (%edi, %ebx, 4)
@@ -241,8 +230,8 @@ dodaj_kolejny:
 	cmpl	$0, %edx				# Czy juz wszystko zostalo dodane
 	jnz	dodanie_mantysy
 
-    cmpb    $0, czy_normalizowac    # W wypadku gdy nie trzeba znormalizowac
-    jz  koniec
+    #cmpb    $0, czy_normalizowac    # W wypadku gdy nie trzeba znormalizowac
+    #jz  koniec
     call    normalizacja
 	jmp koniec
 zle_znaki:
