@@ -52,6 +52,32 @@ wystapil_NaN:
     call    NaN
     jmp nie_zero
 nie_ma_NaN:
+
+	# Alokacja pamieci na wynik
+	movl	liczba1_size, %eax
+	movl	%eax, wynik_size
+	movl    $4*2, %ebx
+	mull	%ebx				# Wynik jest 2 razy wiekszy
+	pushl	%eax
+	call	malloc
+	addl	$4, %esp
+	movl	%eax, wynik_mts
+	
+	movl    liczba2_size, %eax
+	movl    $2, %ebx
+	mull    %ebx
+	movl    %eax, rozmiar_temp  # W ebx jest 2 razy rozmiar
+	
+	# Zerowanie
+	movl	%eax, %ecx
+	xorl	%eax, %eax
+	movl	wynik_mts, %edi
+	
+zeruj:
+	movl	$0, (%edi, %eax, 4)
+	incl	%eax
+	cmpl	rozmiar_temp, %eax
+	jnz	zeruj
     
     #sprawdzenie czy obie EXP dodatnie
     movl	(%esi), %eax
@@ -219,32 +245,6 @@ odkryj_jedynke2:						#przesuwa druga liczbe
 	rcrl	$1, (%edi, %ebx, 4)
 	incl	%ebx
 	loop    odkryj_jedynke2
-
-	# Alokacja pamieci na wynik
-	movl	liczba1_size, %eax
-	movl	%eax, wynik_size
-	movl    $4*2, %ebx
-	mull	%ebx				# Wynik jest 2 razy wiekszy
-	pushl	%eax
-	call	malloc
-	addl	$4, %esp
-	movl	%eax, wynik_mts
-	
-	movl    liczba2_size, %eax
-	movl    $2, %ebx
-	mull    %ebx
-	movl    %eax, rozmiar_temp  # W ebx jest 2 razy rozmiar
-	
-	# Zerowanie
-	movl	%eax, %ecx
-	xorl	%eax, %eax
-	movl	wynik_mts, %edi
-	
-zeruj:
-	movl	$0, (%edi, %eax, 4)
-	incl	%eax
-	cmpl	rozmiar_temp, %eax
-	jnz	zeruj
 
 	# Mnozenie
 	movl    liczba1_mts, %edi
