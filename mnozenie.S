@@ -319,10 +319,14 @@ shift_wynik2:
 	#czy overflow
 	jc	overflow
 	
-nie_ma_ov:	
+nie_ma_ov:
 	#przesuniecie
 	movl	wynik_mts, %edi
-    movl	$ROZMIAR_PAKIETU, %edx
+	movl	(%edi), %eax
+	test	$MASKA_TEST, %eax			#sprawdza czy jest jeden na poczatku
+	jnz	koniec
+    #movl	$ROZMIAR_PAKIETU, %edx
+    movl	rozmiar_temp, %edx
 wyr_caly_pkt:
 	movl    wynik_size, %ecx
 	movl    %ecx, %ebx
