@@ -271,7 +271,7 @@ petla2_mnoz:
 	mull    (%esi, %ecx, 4)         # Obliczenie czastokowego iloczynu
 	pushl   %edi
 	movl   	wynik_mts, %edi
-	adcl	%eax, (%edi, %ebx, 4)
+	addl	%eax, (%edi, %ebx, 4)
 	pushl	%ebx
 	decl	%ebx
 	adcl	%edx, (%edi, %ebx, 4)
