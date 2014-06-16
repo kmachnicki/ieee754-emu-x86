@@ -333,7 +333,7 @@ wyr_caly_pkt:
 	movl    %ecx, %ebx
 	movl	(%edi), %eax
 	test	$MASKA_TEST, %eax			#sprawdza czy jest jeden na poczatku
-	jnz	koniec
+	jnz	koniec_przesun
 	clc
 wyrownaj_pakiet:
 	decl    %ebx
@@ -342,6 +342,7 @@ wyrownaj_pakiet:
 	decl	%edx
 	cmpl	$0, %edx
 	jnz	wyr_caly_pkt
+koniec_przesun:
 	#jeszcze raz zeby ukryc te jedynke
 	movl	wynik_size, %ecx
 	movl	%ecx, %ebx
