@@ -53,6 +53,7 @@ wystapil_NaN:
     jmp nie_zero
 nie_ma_NaN:
 
+
 	# Alokacja pamieci na wynik
 	movl	liczba1_size, %eax
 	movl	%eax, wynik_size
@@ -78,7 +79,31 @@ zeruj:
 	incl	%eax
 	cmpl	rozmiar_temp, %eax
 	jnz	zeruj
-    
+	
+	#sprawdzenie czy ktoras z liczb nie jest zerem
+	movl	$liczba1_exp, %esi
+	movl	$liczba2_exp, %edi
+	
+	cmpl	$0, (%esi)
+	jnz	pierwsza_nie_zero
+	cmpl	$0, 4(%esi)
+	jnz	pierwsza_nie_zero
+	
+	#pierwsza rowna zero; wynik tez bedzie zero
+	call	ZeroNumb
+	jmp	koniec
+	
+pierwsza_nie_zero:
+	#sprawdzenie czy druga nie rowna zero
+	cmpl	$0, (%edi)
+	jnz	druga_nie_zero
+	cmpl	$0, 4(%edi)
+	jnz	druga_nie_zero
+	
+	#druga rowna zero
+    call	ZeroNumb
+    jmp	koniec
+druga_nie_zero:
     #sprawdzenie czy obie EXP dodatnie
     
     movl	$liczba1_exp, %esi
@@ -297,15 +322,6 @@ shift_wynik2:
 	decl    %ebx
 	rcll	$1, (%edi, %ebx, 4)
 	loop    shift_wynik2
-		
-#zwiekszenie_mantysy:
-#	movl	$wynik_exp, %edi
-#	movl	4(%edi), %eax
-#	movl	(%edi), %ebx
-#	addl	$1, %eax
-#	adcl	$0, %ebx
-#	movl	%ebx, (%edi)
-#	movl	%eax, 4(%edi)
 	
 	#sprawdzanie czy overflow + przesuniecie wyniku o jeden pakiet
 	movl	wynik_mts, %esi
@@ -322,8 +338,6 @@ shift_wynik2:
 nie_ma_ov:
 	#przesuniecie
 	movl	wynik_mts, %edi
-    #movl	$ROZMIAR_PAKIETU, %edx
-    #movl	rozmiar_temp, %edx
 	movl rozmiar_temp, %eax
 	movl $32, %ebx
 	mull %ebx
@@ -401,15 +415,6 @@ przepisz_petla:
 	movl	wynik_mts, %edi
 	movl	wynik_size, %ecx
 	xorl	%edx, %edx
-	
-#czy_zero:
-#	movl	(%edi, %edx, 4), %eax
-#	incl	%edx
-#	cmpl	$0, %eax
-#	jnz	nie_zero
-#	loop	czy_zero
-#	
-#	call ZeroNumb
 	
 nie_zero:
 	leave
