@@ -32,8 +32,10 @@ mnoz:
 	jz	bedzie_dodatni
 	movb	$1, wynik_sign
     jmp po_zamianie_znakow
+	
 bedzie_dodatni:
 	movb	$0, wynik_sign
+	
 po_zamianie_znakow:
 	movl	$liczba1_exp, %esi
 	movl	$liczba2_exp, %edi
@@ -43,17 +45,18 @@ po_zamianie_znakow:
     jnz pierwsza_nie_NaN
     cmpl    $0xFFFFFFFF, (%esi) 
     jz  wystapil_NaN
+	
 pierwsza_nie_NaN:
     cmpl    $0xFFFFFFFF, 4(%edi) 
     jnz nie_ma_NaN
     cmpl    $0xFFFFFFFF, (%edi) 
     jnz nie_ma_NaN
+	
 wystapil_NaN:
     call    NaN
     jmp nie_zero
+	
 nie_ma_NaN:
-
-
 	# Alokacja pamieci na wynik
 	movl	liczba1_size, %eax
 	movl	%eax, wynik_size
@@ -103,9 +106,9 @@ pierwsza_nie_zero:
 	#druga rowna zero
     call	ZeroNumb
     jmp	koniec
+	
 druga_nie_zero:
     #sprawdzenie czy obie EXP dodatnie
-    
     movl	$liczba1_exp, %esi
 	movl	$liczba2_exp, %edi
 	
@@ -262,6 +265,7 @@ sprowadzone:
 	movl	liczba1_size, %ecx
 	xorl	%ebx, %ebx
 	stc
+	
 odkryj_jedynke1:
 	rcrl	$1, (%esi, %ebx, 4)			#przesuwa pierwsza liczbe
 	incl	%ebx
@@ -270,6 +274,7 @@ odkryj_jedynke1:
 	movl	liczba1_size, %ecx
 	xorl	%ebx, %ebx
 	stc
+	
 odkryj_jedynke2:						#przesuwa druga liczbe
 	rcrl	$1, (%edi, %ebx, 4)
 	incl	%ebx
@@ -342,6 +347,7 @@ nie_ma_ov:
 	movl $32, %ebx
 	mull %ebx
 	movl %eax, %edx
+	
 wyr_caly_pkt:
 	movl    wynik_size, %ecx
 	movl    %ecx, %ebx
@@ -349,6 +355,7 @@ wyr_caly_pkt:
 	test	$MASKA_TEST, %eax			#sprawdza czy jest jeden na poczatku
 	jnz	koniec_przesun
 	clc
+	
 wyrownaj_pakiet:
 	decl    %ebx
 	rcll	$1, (%edi, %ebx, 4)
@@ -356,11 +363,13 @@ wyrownaj_pakiet:
 	decl	%edx
 	cmpl	$0, %edx
 	jnz	wyr_caly_pkt
+	
 koniec_przesun:
 	#jeszcze raz zeby ukryc te jedynke
 	movl	wynik_size, %ecx
 	movl	%ecx, %ebx
 	clc
+	
 wyrownaj_pakiet2:
 	decl    %ebx
 	rcll	$1, (%edi, %ebx, 4)
