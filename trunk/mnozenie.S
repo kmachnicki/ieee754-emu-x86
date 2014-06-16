@@ -342,6 +342,15 @@ wyrownaj_pakiet:
 	decl	%edx
 	cmpl	$0, %edx
 	jnz	wyr_caly_pkt
+	#jeszcze raz zeby ukryc te jedynke
+	movl	wynik_size, %ecx
+	xorl	%ebx, %ebx
+	clc
+wyrownaj_pakiet2:
+	decl    %ebx
+	rcll	$1, (%edi, %ebx, 4)
+	loop    wyrownaj_pakiet2
+	
 koniec:
 	# Sprawdzenie czy jest co zaokraglac
 	movl	wynik_size, %ecx
