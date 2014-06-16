@@ -323,7 +323,11 @@ nie_ma_ov:
 	#przesuniecie
 	movl	wynik_mts, %edi
     #movl	$ROZMIAR_PAKIETU, %edx
-    movl	rozmiar_temp, %edx
+    #movl	rozmiar_temp, %edx
+	movl rozmiar_temp, %eax
+	movl $32, %ebx
+	mull %ebx
+	movl %eax, %edx
 wyr_caly_pkt:
 	movl    wynik_size, %ecx
 	movl    %ecx, %ebx
