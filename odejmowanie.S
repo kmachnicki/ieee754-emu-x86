@@ -25,6 +25,7 @@ odejmij:
     jz  dobre_znaki
     cmpb    $0, %ah
     jnz zle_znaki
+	
 dobre_znaki:
 	movl	$liczba1_exp, %esi
 	movl	$liczba2_exp, %edi
@@ -34,16 +35,18 @@ dobre_znaki:
     jnz pierwsza_nie_NaN
     cmpl    $0xFFFFFFFF, (%esi) 
     jz  wystapil_NaN
+	
 pierwsza_nie_NaN:
     cmpl    $0xFFFFFFFF, 4(%edi) 
     jnz nie_ma_NaN
     cmpl    $0xFFFFFFFF, (%edi) 
     jnz nie_ma_NaN
+	
 wystapil_NaN:
     call    NaN
     jmp nie_zero
+	
 nie_ma_NaN:
-
     # Alokacja pamieci na wynik
 	movl	liczba1_size, %eax
 	movl	%eax, wynik_size
@@ -108,8 +111,10 @@ shift_2:
     jnc	nie_cf2
 	movb	$1, bit_specjalny
 	jmp	po_cf2
+	
 nie_cf2:
 	movb	$0, bit_specjalny
+	
 po_cf2:
 	decl	iterator_1
 	cmpl	$0, iterator_1
@@ -165,6 +170,7 @@ pierwsza:						# W wypadku gdy pierwsza liczba jest miejsza lub rowna
     movl    liczba2_mts, %edi
     movl    liczba1_size, %ecx
     xorl    %edx, %edx
+	
 czy_zero1:
 	movl	(%edi, %edx, 4), %eax
     movl    (%esi, %edx, 4), %ebx
@@ -202,8 +208,10 @@ shift_1:
     jnc	nie_cf1
 	movb	$1, bit_specjalny
 	jmp	po_cf1
+	
 nie_cf1:
 	movb	$0, bit_specjalny
+	
 po_cf1:
 	decl	iterator_1
 	cmpl	$0, iterator_1
@@ -224,8 +232,6 @@ powtorz_1:
 koniec_shift_1:
 	
 po_ustawieniu:
-	
-
 	# Liczby sprowadzone do wspolnej potegi (teraz odejmowanie)
 	movl	liczba1_mts, %esi
 	movl	liczba2_mts, %edi
@@ -241,8 +247,10 @@ odjecie_mantysy:
     jnc odejmij_dalej
     movb    $1, czy_normalizowac
     jmp odejmij_kolejny
+	
 odejmij_dalej:
     movb    $0, czy_normalizowac
+	
 odejmij_kolejny:
 	pushl	%edi
 	movl	wynik_mts, %edi
@@ -264,9 +272,7 @@ shift_wynik2:
 	rcll	$1, (%edi, %ebx, 4)
 	loop    shift_wynik2
 	
-normal:    
-    #cmpb    $0, czy_normalizowac    # W wypadku gdy nie trzeba znormalizowac
-    #jz  koniec
+normal:
     call    normalizacjaOdejmowanie             #normalizuj
 	jmp koniec
 	
@@ -277,7 +283,6 @@ koniec:
     movl	jakie_zaokraglenie, %eax
 	call	zaokraglenie
 
-	
 nie_zero:
 	leave
 	ret

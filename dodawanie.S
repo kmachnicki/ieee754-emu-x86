@@ -34,16 +34,18 @@ dodaj:
     jnz pierwsza_nie_NaN
     cmpl    $0xFFFFFFFF, (%esi) 
     jz  wystapil_NaN
+	
 pierwsza_nie_NaN:
     cmpl    $0xFFFFFFFF, 4(%edi) 
     jnz nie_ma_NaN
     cmpl    $0xFFFFFFFF, (%edi) 
     jnz nie_ma_NaN
+	
 wystapil_NaN:
     call    NaN
     jmp nie_zero
+	
 nie_ma_NaN:
-
     # Alokacja pamieci na wynik
 	movl	liczba1_size, %eax
 	movl	%eax, wynik_size
@@ -106,8 +108,10 @@ shift_2:
     jnc nie_cf2
 	movb	$1, bit_specjalny
 	jmp	po_cf2
+	
 nie_cf2:
 	movb	$0, bit_specjalny
+	
 po_cf2:
 	decl	iterator_1
 	cmpl	$0, iterator_1
@@ -129,9 +133,7 @@ koniec_shift_2:
     jmp po_ustawieniu
 
 pierwsza:						# W wypadku gdy pierwsza liczba jest mniejsza lub rowna
-
 	movb	$1, czy_druga		# druga liczba jest wieksza
-	
     # Przepisanie eksponenty
     pushl   %edi
     pushl   %esi
@@ -157,23 +159,12 @@ pierwsza:						# W wypadku gdy pierwsza liczba jest mniejsza lub rowna
     cmpl    $0, %ecx
     jnz nie_rowne_zero_ecxeax
     
-    #rowne 0
+    # Dla rownego 0
     movb    $0, czy_druga		# jednak takie same
-    
-    #dodajemy EXP+1
-    #pushl   %edi
-    #movl	$wynik_exp, %edi
-	#movl	4(%edi), %eax
-	#movl	(%edi), %ebx
-	#addl	$1, %eax
-	#adcl	$0, %ebx
-	#movl	%ebx, (%edi)
-	#movl	%eax, 4(%edi)
-    #popl    %edi
+
     jmp po_ustawieniu
     
 nie_rowne_zero_ecxeax:
-	
 	movl	liczba1_mts, %edi
 	movl	%eax, iterator_1
 	movl	%ecx, iterator_2
@@ -188,8 +179,10 @@ shift_1:
     jnc	nie_cf1
 	movb	$1, bit_specjalny
 	jmp	po_cf1
+	
 nie_cf1:
 	movb	$0, bit_specjalny
+	
 po_cf1:
 	decl	iterator_1
 	cmpl	$0, iterator_1
@@ -210,8 +203,6 @@ powtorz_1:
 koniec_shift_1:
 
 po_ustawieniu:
-	
-
 	# Liczby sprowadzone do wspolnej potegi (teraz dodawanie)
 	movl	liczba1_mts, %esi
 	movl	liczba2_mts, %edi
@@ -226,8 +217,10 @@ dodanie_mantysy:
     jnc dodaj_dalej
     movb    $1, czy_normalizowac
     jmp dodaj_kolejny
+	
 dodaj_dalej:
     movb    $0, czy_normalizowac
+	
 dodaj_kolejny:
 	pushl	%edi
 	movl	wynik_mts, %edi
@@ -241,17 +234,6 @@ dodaj_kolejny:
     #jz  koniec
 	cmpb	$0, czy_druga
 	jnz	koniec
-    
-    # Jedno przesuniecie
-#	movl	wynik_mts, %edi
-#	movl    wynik_size, %ecx
-#	xorl	%ebx, %ebx
-#	clc
-	
-#przesuniecie_1:
-#	rcrl	$1, (%edi, %ebx, 4)
-#	incl	%ebx
-#	loop    przesuniecie_1
     
 normalizowac:    
     call    normalizacja
@@ -267,14 +249,6 @@ koniec:
 	movl	wynik_mts, %edi
 	movl	wynik_size, %ecx
 	xorl	%edx, %edx
-#czy_zero:
-#	movl	(%edi, %edx, 4), %eax
-#	incl	%edx
-#	cmpl	$0, %eax
-#	jnz	nie_zero
-#	loop	czy_zero
-#	
-#	call ZeroNumb
 	
 nie_zero:
 	leave
