@@ -344,7 +344,7 @@ wyrownaj_pakiet:
 	jnz	wyr_caly_pkt
 	#jeszcze raz zeby ukryc te jedynke
 	movl	wynik_size, %ecx
-	xorl	%ebx, %ebx
+	movl	%ecx, %ebx
 	clc
 wyrownaj_pakiet2:
 	decl    %ebx
