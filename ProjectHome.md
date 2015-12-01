@@ -1,0 +1,1 @@
+Projekt tworzony na zaliczenie przedmiotu Architektura Komputerów 2.
